@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head lang="ja">
+        <meta charset="UTF-8">
+        <title>弁当注文ホーム</title>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/redmond/jquery-ui.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/jqgrid/4.6.0/css/ui.jqgrid.css">
+        <link rel="stylesheet" href="bootstrap-select.min.css">
+        <style>
+            body {
+                margin:5em;
+            }
+            select {
+                font-size: 10em;
+                margin:5em;
+            }
+            #divOrder {
+                display:none;
+            }
+            #divManage {
+                display:none;
+            }
+
+            #btnManage {
+                display: none;
+            }
+
+            #yammerUserInfo {
+                float: right;
+                display:none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="important">
+            <button id="authYammer" class="btn btn-block btn-embossed btn-primary">yammerにログイン</button>
+            <span class="alert alert-info" id="yammerUserInfo"></span>
+        </div>
+        <div>
+            <div id="divHome">
+                <h1 class="page-header">お弁当注文システム</h1>
+                <p>
+                    <input type="date" value="2014-01-23" />
+                </p>
+                <p>
+                    <button id="btnOrder" class="btn btn-block btn-success btn-embossed">注文する</button>
+                </p>
+                <p>
+                    <button id="btnManage" class="btn btn-block btn-primary btn-embossed">管理用</button>
+                </p>
+            </div>
+            <div id="divOrder">
+                <h1 class="page-header">お弁当注文</h1>
+                <select id="selStore">
+                    <option value="StoreA">弁当屋A</option>
+                    <option value="StoreB">弁当屋B</option>
+                </select>
+                <select id="selBento">
+                    <option value="MS">少</option>
+                    <option value="MM">中</option>
+                    <option value="ML">多</option>
+                    <option value="M0">なし</option>
+                </select>
+                <button id="btnSubmitOrder" class="btn btn-block btn-primary btn-embossed">注文を確定</button>
+                <button id="btnCancelOrder" class="btn btn-block btn-primary btn-embossed">注文をキャンセル</button>
+            </div>
+            <div id="divManage">
+                <h1 class="page-header">管理用</h1>
+                <table id="tabOrderList"></table>
+                <button id="btnBackFromManage" class="btn btn-block btn-primary btn-embossed">戻る</button>
+            </div>
+        </div>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+        <script src="jquery.ba-hashchange.js"></script>
+        <script src="//cdn.jsdelivr.net/jqgrid/4.6.0/jquery.jqGrid.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/i18n/grid.locale-ja.js"></script>
+        <script src="bootstrap-select.min.js"></script>
+        <script src="app.js"></script>
+    </body>
+</html>
