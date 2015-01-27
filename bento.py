@@ -52,6 +52,7 @@ def auth_yammer():
         'user_name': res['user']['full_name'],
         'email': email,
         'is_soumu': user.is_soumu,
+        'id': user.get_id(),
     }}
 
     response = jsonify(result)

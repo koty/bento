@@ -9,11 +9,7 @@ menu_controller = Blueprint('menu_controller', __name__)
 
 @menu_controller.route('/menus/<store_id>', methods=['GET'])
 def get_menus(store_id):
-    try:
-        menus_query = Menu.select().where(Menu.store == Store(id=store_id))
-    except Exception as e:
-        print(e)
-
+    menus_query = Menu.select().where(Menu.store == Store(id=store_id))
     menus_result = [{
                         'menu_id': menu.get_id(),
                         'menu_name': menu.menu_name,

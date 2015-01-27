@@ -14,19 +14,47 @@ function changeDiv() {
     }
 }
 $(document).on('click', '#btnOrder', function() {
+    if ($('#txtOrderDate').val() === '') {
+        alert('注文日を入力してください。');
+    }
     location.href="#order";
 });
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
-});
-$(document).on('click', '#btnSubmitOrder', function() {
-    location.href="#";
 });
 $(document).on('click', '#btnCancelOrder', function() {
     location.href="#";
 });
 $(document).on('click', '#btnBackFromManage', function() {
     location.href="#";
+});
+$(document).on('click', '#btnSubmitOrder', function() {
+    var post_data = {};
+    post_data.store_id = $('#selStore option[selected="selected"]').val();
+    post_data.menu_id = $('#selMenu option[selected="selected"]').val();
+    post_data.user_id = user_info.id;
+    post_data.order_date = $('#txtOrderDate').val();
+    $.ajax({
+        type: "POST",
+        url: "/orders",
+        contentType: "application/json",
+        data: JSON.stringify(post_data),
+        dataType: "json"
+    }).done(function (data) {
+        if (!data || !data.result) {
+            alert('注文の保存に失敗しました。');
+        }
+        alert('注文を保存しました。');
+        $('#lblOrderStatus').text('注文済みです。')
+            .addClass('alert-success')
+            .removeClass('alert-warning');
+        location.href="#";
+    }).fail(function (data) {
+        alert(data);
+    });
+});
+$(document).on('click', '#btnCancelOrer', function(){
+
 });
 $(document).on('click', '#authYammer', function() {
     var ORG_KEY = 'yammer-organization';
@@ -45,11 +73,63 @@ $(document).on('click', '#authYammer', function() {
         + '/dialog/oauth?client_id=7P0TIAkZg8TgXAHSwiB0KQ&redirect_uri='
         + encodeURIComponent(location.href);
 });
+$(document).on('change', '#selStore', function(){
+    var store_id = $("#selStore option[selected='selected']").val();
+    $.getJSON('/menus/' + store_id).done(function(data) {
+        var menu_options = data.results.map(function(s) {
+            return '<option value="' + s.menu_id  + '">' + s.menu_name + '</option>';
+        }).join('');
+        $('#selMenu').html(menu_options);
+        $('#txtOrderDate').trigger('change');
+    });
+});
+$(document).on('change', '#txtOrderDate', function() {
+    if ($('#txtOrderDate').val() === '') {
+        return;
+    }
+    if (!user_info) {
+        return;
+    }
+    $.getJSON('/order_by_user_date/' 
+        + user_info.id + '/' 
+        + $('#txtOrderDate').val())
+    .done(function(data) {
+        if (!data || !data.result) {
+            $('#selStore option:first')
+                .attr('selected', 'selected');
+            $('#selMenu option:first')
+                .attr('selected', 'selected');
+            return;
+        }
+        $('#selStore option[value="' + data.result.store_id + '"]')
+            .attr('selected', 'selected');
+        $('#selMenu option[value="' + data.result.menu_id + '"]')
+            .attr('selected', 'selected');
+        $('#lblOrderStatus').text('注文済みです。')
+            .addClass('alert-success')
+            .removeClass('alert-warning');
+        if (data.status === 200) {
+            alert('注文を修正しました。')
+        }
+    }).fail(function(data) {
+        if (data.status === 404) {
+            $('#lblOrderStatus').text('注文未済みです。')
+                .addClass('alert-warning')
+                .removeClass('alert-success');
+            $('#selStore option:first')
+                .attr('selected', 'selected');
+            $('#selMenu option:first')
+                .attr('selected', 'selected');
+        }
+    });
+});
 $(window).hashchange(function() {
     changeDiv();
 });
 var user_info;
 $(window).on('load', function () {
+    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
+        .trigger('change');
     if (location.search.indexOf("?code=") >= 0) {
         var code = location.search.split('=')[1];
         $.ajax({
@@ -66,7 +146,8 @@ $(window).on('load', function () {
                 'token': data.result.token,
                 'email': data.result.email,
                 'user_name': data.result.user_name,
-                'is_soumu': data.result.is_soumu
+                'is_soumu': data.result.is_soumu,
+                'id': data.result.id
             };
             localStorage.setItem('user_info', JSON.stringify(user_info));
             //codeを取り除く
@@ -89,12 +170,16 @@ $(window).on('load', function () {
         }
     }
 
-    $('#selStore').selectpicker({
-        'selectedValue': '弁当屋A'
-    });
-    $('#selBento').selectpicker({
-        'selectedValue': '中'
-    });
+    var last_selected_store_menu = localStorage.getItem('last_selected_store_menu');
+    $.getJSON('/stores').done(function(data) {
+        if (!data || !data.results) return;
+        var store_options = data.results.map(function(s) {
+            return '<option value="' + s.store_id  + '">' + s.store_name + '</option>';
+        }).join('');
+        $('#selStore').html(store_options);
+        $('#selStore option:first').attr('selected','selected');
+        $('#selStore').trigger('change');
+    })
     changeDiv();
 });
 

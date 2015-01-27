@@ -45,7 +45,7 @@ class Order(BaseModel):
     order_date = DateField(null=False)
     menu = ForeignKeyField(rel_model=Menu, related_name='orders', null=False)
     user = ForeignKeyField(rel_model=User, related_name='orders', null=False)
-    proxy_user = ForeignKeyField(rel_model=User, related_name='orders_proxy')
+    proxy_user = ForeignKeyField(rel_model=User, related_name='orders_proxy', null=True)
 
     class Meta:
         db_table = 'order'

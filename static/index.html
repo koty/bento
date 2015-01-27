@@ -13,8 +13,17 @@
                 margin:5em;
             }
             select {
-                font-size: 10em;
-                margin:5em;
+                width: 200px;
+                padding: 5px;
+                font-size: 16px;
+                line-height: 1;
+                border: 0;
+                border-radius: 0;
+                height: 34px;
+            }
+            button {
+                margin-top: 1em;
+                margin-bottom: 1em;
             }
             #divOrder {
                 display:none;
@@ -42,7 +51,7 @@
             <div id="divHome">
                 <h1 class="page-header">お弁当注文システム</h1>
                 <p>
-                    <input type="date" value="2014-01-23" />
+                    <input id="txtOrderDate" type="date" value="" />
                 </p>
                 <p>
                     <button id="btnOrder" class="btn btn-block btn-success btn-embossed">注文する</button>
@@ -54,15 +63,10 @@
             <div id="divOrder">
                 <h1 class="page-header">お弁当注文</h1>
                 <select id="selStore">
-                    <option value="StoreA">弁当屋A</option>
-                    <option value="StoreB">弁当屋B</option>
                 </select>
-                <select id="selBento">
-                    <option value="MS">少</option>
-                    <option value="MM">中</option>
-                    <option value="ML">多</option>
-                    <option value="M0">なし</option>
+                <select id="selMenu">
                 </select>
+                <span id="lblOrderStatus" class="alert alert-info"></span>
                 <button id="btnSubmitOrder" class="btn btn-block btn-primary btn-embossed">注文を確定</button>
                 <button id="btnCancelOrder" class="btn btn-block btn-primary btn-embossed">注文をキャンセル</button>
             </div>
@@ -79,6 +83,7 @@
         <script src="//cdn.jsdelivr.net/jqgrid/4.6.0/jquery.jqGrid.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/i18n/grid.locale-ja.js"></script>
         <script src="bootstrap-select.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js"></script>
         <script src="app.js"></script>
     </body>
 </html>
