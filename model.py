@@ -36,6 +36,8 @@ class Menu(BaseModel):
     store = ForeignKeyField(rel_model=Store, related_name='menus', null=False)
     menu_name = CharField(null=False)
     unit_price = IntegerField(null=False, default=0)
+# 将来的にはiframeでメニューを表示できるようにしたい。。。
+#    intro_url = CharField(null=True)
 
     class Meta:
         db_table = 'menu'
@@ -44,8 +46,8 @@ class Menu(BaseModel):
 class Order(BaseModel):
     order_date = DateField(null=False)
     menu = ForeignKeyField(rel_model=Menu, related_name='orders', null=False)
-    user = ForeignKeyField(rel_model=User, related_name='orders', null=False)
-    proxy_user = ForeignKeyField(rel_model=User, related_name='orders_proxy', null=True)
+    user = ForeignKeyField(rel_model=User, related_name='orders', null=False, to_field='id')
+    proxy_user = ForeignKeyField(rel_model=User, related_name='orders_proxy', null=True, to_field='id')
 
     class Meta:
         db_table = 'order'

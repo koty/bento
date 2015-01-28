@@ -16,7 +16,7 @@ def post_order():
     content_body_dict = json.loads(request.data.decode())
 
     order = Order.select(Order.user == User(id=content_body_dict['user_id'])
-                      , Order.order_date == content_body_dict['order_date'])
+                         and Order.order_date == content_body_dict['order_date'])
     if order.exists():
         result = {'result': {'user': {
             'user_id': content_body_dict['user_id'],
@@ -51,21 +51,47 @@ def post_order():
     return response
 
 
+@order_controller.route('/orders', methods=['DELETE'])
+@consumes('application/json')
+def delete_order():
+    # Content-Body を JSON 形式として辞書に変換する
+    content_body_dict = json.loads(request.data.decode())
+
+    order = Order.select(Order.user == User(id=content_body_dict['user_id'])
+                         and Order.order_date == content_body_dict['order_date'])
+    if order.exists():
+        q = Order.delete() \
+            .where(Order.user == User(id=content_body_dict['user_id'])
+                   and Order.order_date == content_body_dict['order_date'])
+        q.execute()
+        result = {'result': True}
+        response = jsonify({'result': result})
+        response.status_code = 200
+        return response
+
+    result = {'result': True}
+    response = jsonify(result)
+
+    response.status_code = 404
+    return response
+
+
 def _get_orders(orders):
     if not orders.exists():
         response = jsonify({})
         response.status_code = 404
         return response
+
     result = {'result': [
         {'id': o.id,
-         'order_date': o.order_date,
+         'order_date': str(o.order_date),
          'menu_id': o.menu.get_id(),
          'menu_name': o.menu.menu_name,
          'user_id': o.user.get_id(),
          'user_name': o.user.user_name,
          'store_id': o.menu.store.get_id(),
          'store_name': o.menu.store.store_name,
-         'proxy_user_id': o.proxy_user.get_id(),
+         'proxy_user_id': o.proxy_user.get_id() if o.proxy_user else '',
         } for o in orders]}
     response = jsonify(result)
     response.status_code = 200
@@ -86,8 +112,7 @@ def get_order_by_user(user_id):
 
 @order_controller.route('/order_by_user_date/<user_id>/<order_date>', methods=['GET'])
 def get_order_by_user_date(user_id, order_date):
-    orders_query = Order.select(Order, User, Menu, Store) \
-        .join(User, Order, Menu) \
-        .where(Order.user == User(id=user_id)
-                                        , Order.order_date == order_date)
+    orders_query = Order.select() \
+        .where(Order.user == User(id=user_id, email='', user_name='')
+               , Order.order_date == order_date)
     return _get_orders(orders_query)

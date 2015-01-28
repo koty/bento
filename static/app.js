@@ -22,16 +22,13 @@ $(document).on('click', '#btnOrder', function() {
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
 });
-$(document).on('click', '#btnCancelOrder', function() {
-    location.href="#";
-});
 $(document).on('click', '#btnBackFromManage', function() {
     location.href="#";
 });
 $(document).on('click', '#btnSubmitOrder', function() {
     var post_data = {};
-    post_data.store_id = $('#selStore option[selected="selected"]').val();
-    post_data.menu_id = $('#selMenu option[selected="selected"]').val();
+    post_data.store_id = $('#selStore').find(":selected").val();
+    post_data.menu_id = $('#selMenu').find(":selected").val();
     post_data.user_id = user_info.id;
     post_data.order_date = $('#txtOrderDate').val();
     $.ajax({
@@ -44,7 +41,11 @@ $(document).on('click', '#btnSubmitOrder', function() {
         if (!data || !data.result) {
             alert('注文の保存に失敗しました。');
         }
-        alert('注文を保存しました。');
+        if (data.status === 200) {
+            alert('注文を修正しました。')
+        } else {
+            alert('注文を保存しました。');
+        }
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
@@ -53,8 +54,31 @@ $(document).on('click', '#btnSubmitOrder', function() {
         alert(data);
     });
 });
-$(document).on('click', '#btnCancelOrer', function(){
-
+$(document).on('click', '#btnCancelOrder', function(){
+    var post_data = {};
+    post_data.user_id = user_info.id;
+    post_data.order_date = $('#txtOrderDate').val();
+    $.ajax({
+        type: "DELETE",
+        url: "/orders",
+        contentType: "application/json",
+        data: JSON.stringify(post_data),
+        dataType: "json"
+    }).done(function (data) {
+        if (!data || !data.result) {
+            alert('注文の取り消しに失敗しました。');
+        }
+        if (data.status === 200) {
+            alert('注文を取り消ししました。')
+        }
+        $('#lblOrderStatus').text('注文未済みです。')
+            .addClass('alert-warning')
+            .removeClass('alert-success');
+        location.href="#";
+    }).fail(function (data) {
+        alert('注文はありません。');
+        location.href="#";
+    });
 });
 $(document).on('click', '#authYammer', function() {
     var ORG_KEY = 'yammer-organization';
@@ -74,7 +98,7 @@ $(document).on('click', '#authYammer', function() {
         + encodeURIComponent(location.href);
 });
 $(document).on('change', '#selStore', function(){
-    var store_id = $("#selStore option[selected='selected']").val();
+    var store_id = $("#selStore").find(':selected').val();
     $.getJSON('/menus/' + store_id).done(function(data) {
         var menu_options = data.results.map(function(s) {
             return '<option value="' + s.menu_id  + '">' + s.menu_name + '</option>';
@@ -94,23 +118,20 @@ $(document).on('change', '#txtOrderDate', function() {
         + user_info.id + '/' 
         + $('#txtOrderDate').val())
     .done(function(data) {
-        if (!data || !data.result) {
+        if (!data || !data.result || data.result.length === 0) {
             $('#selStore option:first')
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
             return;
         }
-        $('#selStore option[value="' + data.result.store_id + '"]')
+        $('#selStore option[value="' + data.result[0].store_id + '"]')
             .attr('selected', 'selected');
-        $('#selMenu option[value="' + data.result.menu_id + '"]')
+        $('#selMenu option[value="' + data.result[0].menu_id + '"]')
             .attr('selected', 'selected');
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
-        if (data.status === 200) {
-            alert('注文を修正しました。')
-        }
     }).fail(function(data) {
         if (data.status === 404) {
             $('#lblOrderStatus').text('注文未済みです。')
@@ -169,6 +190,8 @@ $(window).on('load', function () {
             $('#btnManage').css('display', 'block');
         }
     }
+    $('#btnOrder').attr('disabled', user_info == null);
+    $('#btnManage').attr('disabled', user_info == null);
 
     var last_selected_store_menu = localStorage.getItem('last_selected_store_menu');
     $.getJSON('/stores').done(function(data) {
