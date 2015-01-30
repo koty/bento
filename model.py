@@ -48,6 +48,7 @@ class Order(BaseModel):
     menu = ForeignKeyField(rel_model=Menu, related_name='orders', null=False)
     user = ForeignKeyField(rel_model=User, related_name='orders', null=False, to_field='id')
     proxy_user = ForeignKeyField(rel_model=User, related_name='orders_proxy', null=True, to_field='id')
+    unit = IntegerField(null=False, default=1)
 
     class Meta:
         db_table = 'order'
