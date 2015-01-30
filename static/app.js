@@ -21,6 +21,28 @@ $(document).on('click', '#btnOrder', function() {
 });
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
+    $.getJSON('/orders_per_month').done(function(data) {
+        if (!data || !data.results) return;
+        createOrderListPerStore(data.results)
+    })
+});
+$(document).on('click', '#btnCloseTodaysOrder', function() {
+    var today = moment().format('YYYY-MM-DD');
+    $.ajax({
+        type: "POST",
+        url: "/order_close_today/" + today,
+        contentType: "application/json",
+        data: JSON.stringify({}),
+        dataType: "json"
+    }).done(function (data) {
+        if (!data || !data.result) {
+            alert('注文を締め切りに失敗しました。');
+        }
+        alert('注文を締め切りました。')
+        $('#orderCloseInfo').css('display', 'block');
+    }).fail(function (data) {
+        alert(data);
+    });
 });
 $(document).on('click', '#btnBackFromManage', function() {
     location.href="#";
@@ -132,6 +154,9 @@ $(document).on('change', '#txtOrderDate', function() {
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
+            $('#orderCloseInfo')
+                .css('display', data.result.is_order_closed ? 'block': 'none');
+
     }).fail(function(data) {
         if (data.status === 404) {
             $('#lblOrderStatus').text('注文未済みです。')
@@ -141,6 +166,8 @@ $(document).on('change', '#txtOrderDate', function() {
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
+            $('#orderCloseInfo')
+                .css('display', data.responseJSON.result.is_order_closed ? 'block': 'none');
         }
     });
 });
@@ -206,33 +233,34 @@ $(window).on('load', function () {
     changeDiv();
 });
 
-//列の設定
-var colModelSettings= [
-    {name:"date",index:"date",width:100,align:"center"},
-    {name:"emp_id",index:"no",width:70,align:"center", hidden:true},
-    {name:"emp_name",index:"emp_name",width:200,align:"center"},
-    {name:"order_item_id",index:"age",width:200,align:"center", hidden:true},
-    {name:"order_item_name",index:"local",width:200,align:"center"}
-];
-//列の表示名
-var colNames = ["日付","社員ID","社員名","注文ID","注文名"];
-var data = [
-    {date:'2014-01-23',emp_id:1,emp_name:'あああ',order_item_id:'MS',order_item_name:'ごはん少'},
-    {date:'2014-01-23',emp_id:1,emp_name:'ううう',order_item_id:'M0',order_item_name:'ごはんなし'},
-    {date:'2014-01-23',emp_id:1,emp_name:'いいい',order_item_id:'MM',order_item_name:'ごはん中'}
-];
-//テーブルの作成
-$("#tabOrderList").jqGrid({
-    data:data,  //表示したいデータ
-    datatype : "local",            //データの種別 他にjsonやxmlも選べます。
-    //しかし、私はlocalが推奨です。
-    colNames : colNames,           //列の表示名
-    colModel : colModelSettings,   //列ごとの設定
-    rowNum : 100,                   //一ページに表示する行数
-    rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
-    caption : "注文状況",    //ヘッダーのキャプション
-    height : 200,                  //高さ
-    width : 500,                   //幅
-    shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-    viewrecords: true              //footerの右下に表示する。
-});
+function createOrderListPerStore(orderData) {
+    //列の設定
+    var colModelSettings= [
+        {name:"order_date",index:"date",width:100,align:"center"},
+        {name:"user_id",index:"user_id",width:70,align:"center", hidden:true},
+        {name:"user_name",index:"user_name",width:200,align:"center"},
+        {name:"menu_id",index:"menu_id",width:200,align:"center", hidden:true},
+        {name:"menu_name",index:"menu_name",width:200,align:"center"},
+        {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
+        {name:"store_name",index:"store_name",width:200,align:"center"},
+        {name:"proxy_user_id",index:"proxy_user_id",width:70,align:"center", hidden:true},
+        {name:"proxy_user_name",index:"proxy_user_name",width:70,align:"center", hidden:true}
+    ];
+    //列の表示名
+    var colNames = ["日付","社員ID","社員名","注文ID","注文名","店ID","店名","代理社員ID","代理社員名"];
+    //テーブルの作成
+    $("#tabOrderList").jqGrid({
+        data:orderData,  //表示したいデータ
+        datatype : "local",            //データの種別 他にjsonやxmlも選べます。
+        //しかし、私はlocalが推奨です。
+        colNames : colNames,           //列の表示名
+        colModel : colModelSettings,   //列ごとの設定
+        rowNum : 100,                   //一ページに表示する行数
+        rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
+        caption : "注文状況",    //ヘッダーのキャプション
+        height : 200,                  //高さ
+        width : 500,                   //幅
+        shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
+        viewrecords: true              //footerの右下に表示する。
+    });
+}

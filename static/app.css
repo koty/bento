@@ -1,0 +1,35 @@
+body {
+    margin:5em;
+}
+select {
+    width: 200px;
+    padding: 5px;
+    font-size: 16px;
+    line-height: 1;
+    border: 0;
+    border-radius: 0;
+    height: 34px;
+}
+button {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+#divOrder {
+    display:none;
+}
+#divManage {
+    display:none;
+}
+
+#btnManage {
+    display: none;
+}
+
+#yammerUserInfo {
+    float: right;
+    display:none;
+}
+
+#orderCloseInfo {
+    display: none;
+}

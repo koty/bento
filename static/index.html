@@ -8,44 +8,13 @@
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="//cdn.jsdelivr.net/jqgrid/4.6.0/css/ui.jqgrid.css">
         <link rel="stylesheet" href="bootstrap-select.min.css">
-        <style>
-            body {
-                margin:5em;
-            }
-            select {
-                width: 200px;
-                padding: 5px;
-                font-size: 16px;
-                line-height: 1;
-                border: 0;
-                border-radius: 0;
-                height: 34px;
-            }
-            button {
-                margin-top: 1em;
-                margin-bottom: 1em;
-            }
-            #divOrder {
-                display:none;
-            }
-            #divManage {
-                display:none;
-            }
-
-            #btnManage {
-                display: none;
-            }
-
-            #yammerUserInfo {
-                float: right;
-                display:none;
-            }
-        </style>
+        <link rel="stylesheet" href="./app.css">
     </head>
     <body>
         <div class="important">
             <button id="authYammer" class="btn btn-block btn-embossed btn-primary">yammerにログイン</button>
             <span class="alert alert-info" id="yammerUserInfo"></span>
+            <span class="alert alert-warning" id="orderCloseInfo">注文は締め切られました。</span>
         </div>
         <div>
             <div id="divHome">
@@ -72,7 +41,12 @@
             </div>
             <div id="divManage">
                 <h1 class="page-header">管理用</h1>
-                <table id="tabOrderList"></table>
+                <div>
+                    <button class="btn btn-block btn-primary" id="btnCloseTodaysOrder">今日の注文を締め切る</button>
+                </div>
+                <div>
+                    <table id="tabOrderList"></table>
+                </div>
                 <button id="btnBackFromManage" class="btn btn-block btn-primary btn-embossed">戻る</button>
             </div>
         </div>

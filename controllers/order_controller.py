@@ -4,7 +4,8 @@ from controllers.utils import consumes
 __author__ = 'koty'
 import json
 from flask import jsonify, request, Blueprint
-from model import Order, User, Menu, Store
+from model import Order, User, Menu, Store, Config
+from datetime import datetime
 
 order_controller = Blueprint('order_controller', __name__)
 
@@ -76,9 +77,9 @@ def delete_order():
     return response
 
 
-def _get_orders(orders):
+def _get_orders(orders, is_order_closed=False):
     if not orders.exists():
-        response = jsonify({})
+        response = jsonify({'result': {'is_order_closed': is_order_closed}})
         response.status_code = 404
         return response
 
@@ -92,16 +93,24 @@ def _get_orders(orders):
          'store_id': o.menu.store.get_id(),
          'store_name': o.menu.store.store_name,
          'proxy_user_id': o.proxy_user.get_id() if o.proxy_user else '',
+         'proxy_user_name': o.proxy_user.user_name if o.proxy_user else '',
         } for o in orders]}
+    result.is_order_closed = is_order_closed
     response = jsonify(result)
     response.status_code = 200
     return response
 
 
+@order_controller.route('/orders_per_month/', methods=['GET'])
+def get_order_per_month():
+    orders_query = Order.select().where(Order.order_date.month >= datetime.now().month -1)
+    return _get_orders(orders_query)
+
+
 @order_controller.route('/orders_by_date/<order_date>', methods=['GET'])
 def get_order_by_date(order_date):
     orders_query = Order.select().where(Order.order_date == order_date)
-    return _get_orders(orders_query)
+    return _get_orders(orders_query, _get_is_order_closed(order_date))
 
 
 @order_controller.route('/orders_by_user/<user_id>', methods=['GET'])
@@ -115,4 +124,18 @@ def get_order_by_user_date(user_id, order_date):
     orders_query = Order.select() \
         .where(Order.user == User(id=user_id, email='', user_name='')
                , Order.order_date == order_date)
-    return _get_orders(orders_query)
+    return _get_orders(orders_query, _get_is_order_closed(order_date))
+
+@order_controller.route('/order_close_today/<order_date>', methods=['POST'])
+def close_today_order(order_date):
+    data = Config.get(Config.key == '最新注文締め日')
+    data.value = order_date
+    data.save()
+    response = jsonify({'result': True})
+    response.status_code = 200
+    return response
+
+
+def _get_is_order_closed(order_date):
+    data = Config.get(Config.key == '最新注文締め日')
+    return data.value >= order_date
