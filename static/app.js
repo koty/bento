@@ -36,12 +36,34 @@ $(document).on('click', '#btnCloseTodaysOrder', function() {
         dataType: "json"
     }).done(function (data) {
         if (!data || !data.result) {
-            alert('注文を締め切りに失敗しました。');
+            alert('注文の締め切りに失敗しました。');
         }
         alert('注文を締め切りました。')
         $('#orderCloseInfo').css('display', 'block');
+        $('#btnCloseTodaysOrder').css('display', 'none');
+        $('#btnReopenTodaysOrder').css('display', 'block');
     }).fail(function (data) {
-        alert(data);
+        alert(data.responseText);
+    });
+});
+$(document).on('click', '#btnReopenTodaysOrder', function () {
+    var today = moment().format('YYYY-MM-DD');
+    $.ajax({
+        type: "POST",
+        url: "/order_reopen_today/" + today,
+        contentType: "application/json",
+        data: JSON.stringify({}),
+        dataType: "json"
+    }).done(function (data) {
+        if (!data || !data.result) {
+            alert('注文のsaikaiに失敗しました。');
+        }
+        alert('注文をsaikaiしました。')
+        $('#orderCloseInfo').css('display', 'none');
+        $('#btnCloseTodaysOrder').css('display', 'block');
+        $('#btnReopenTodaysOrder').css('display', 'none');
+    }).fail(function (data) {
+        alert(data.responseText);
     });
 });
 $(document).on('click', '#btnBackFromManage', function() {
@@ -73,7 +95,7 @@ $(document).on('click', '#btnSubmitOrder', function() {
             .removeClass('alert-warning');
         location.href="#";
     }).fail(function (data) {
-        alert(data);
+        alert(data.responseText);
     });
 });
 $(document).on('click', '#btnCancelOrder', function(){
@@ -154,8 +176,17 @@ $(document).on('change', '#txtOrderDate', function() {
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
-            $('#orderCloseInfo')
-                .css('display', data.result.is_order_closed ? 'block': 'none');
+            if (data.result.is_order_closed) {
+                $('#orderCloseInfo')
+                    .css('display', 'block');
+                $('#btnCloseTodaysOrder').css('display', 'none');
+                $('#btnReopenTodaysOrder').css('display', 'block');
+            } else {
+                $('#orderCloseInfo')
+                    .css('display', 'none');
+                $('#btnCloseTodaysOrder').css('display', 'block');
+                $('#btnReopenTodaysOrder').css('display', 'none');
+            }
 
     }).fail(function(data) {
         if (data.status === 404) {
@@ -166,8 +197,17 @@ $(document).on('change', '#txtOrderDate', function() {
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
-            $('#orderCloseInfo')
-                .css('display', data.responseJSON.result.is_order_closed ? 'block': 'none');
+            if (data.responseJSON.result.is_order_closed) {
+                $('#orderCloseInfo')
+                    .css('display', 'block');
+                $('#btnCloseTodaysOrder').css('display', 'none');
+                $('#btnReopenTodaysOrder').css('display', 'block');
+            } else {
+                $('#orderCloseInfo')
+                    .css('display', 'none');
+                $('#btnCloseTodaysOrder').css('display', 'block');
+                $('#btnReopenTodaysOrder').css('display', 'none');
+            }
         }
     });
 });
@@ -201,7 +241,7 @@ $(window).on('load', function () {
             //codeを取り除く
             location.href = location.href.split('?')[0];
         }).fail(function (data) {
-            alert(data);
+            alert(data.responseText);
         });
     }
     var user_info_json = localStorage.getItem('user_info');

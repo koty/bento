@@ -5,7 +5,8 @@ __author__ = 'koty'
 import json
 from flask import jsonify, request, Blueprint
 from model import Order, User, Menu, Store, Config
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.parser import parse
 
 order_controller = Blueprint('order_controller', __name__)
 
@@ -130,6 +131,17 @@ def get_order_by_user_date(user_id, order_date):
 def close_today_order(order_date):
     data = Config.get(Config.key == '最新注文締め日')
     data.value = order_date
+    data.save()
+    response = jsonify({'result': True})
+    response.status_code = 200
+    return response
+
+
+@order_controller.route('/order_reopen_today/<order_date>', methods=['POST'])
+def close_reopen_order(order_date):
+    data = Config.get(Config.key == '最新注文締め日')
+    data.value = parse(order_date)
+    data.value = (data.value + timedelta(days=-1)).strftime('%Y-%m-%d')
     data.save()
     response = jsonify({'result': True})
     response.status_code = 200
