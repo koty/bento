@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, jsonify
-from controllers import user_controller, order_controller, menu_controller
-from controllers.utils import consumes
-from flask import request
-from initial_data import InitialData
 import json
 import http.client
+
+from flask import Flask, jsonify
+from flask import request
+
+from controllers import user_controller, order_controller, menu_controller
+from controllers.utils import consumes
+from initial_data import InitialData
 from model import User
+
 
 app = Flask(__name__, static_folder='static')
 app.register_blueprint(user_controller.user_controller)
@@ -40,14 +43,14 @@ def auth_yammer():
     res_json = res_bytes.readall().decode("UTF-8")
     conn.close()
     if "invalid" in res_json:
-        return {'result': False}
+        return {'results': False}
     res = json.loads(res_json)
     if not res or not res['access_token'] or not res['access_token']['token']:
-        return {'result': False}
+        return {'results': False}
     token = res['access_token']['token']
     email = res['user']['email']
     user = User.get(User.email == email)
-    result = {'result': {
+    results = {'results': {
         'token': token,
         'user_name': res['user']['full_name'],
         'email': email,
@@ -55,7 +58,7 @@ def auth_yammer():
         'id': user.get_id(),
     }}
 
-    response = jsonify(result)
+    response = jsonify(results)
     response.status_code = 200
     return response
 

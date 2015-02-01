@@ -13,7 +13,7 @@ function changeDiv() {
         $('#divManage').css('display', 'none');
     }
 }
-$(document).on('click', '#btnOrder', function() {
+$(document).on('click', '#btnOrdcreaer', function () {
     if ($('#txtOrderDate').val() === '') {
         alert('注文日を入力してください。');
     }
@@ -21,10 +21,14 @@ $(document).on('click', '#btnOrder', function() {
 });
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
-    $.getJSON('/orders_per_month').done(function(data) {
+    $.getJSON('/orders_per_month')
+        .done(function (data) {
         if (!data || !data.results) return;
         createOrderListPerStore(data.results)
     })
+        .fail(function (data) {
+            createOrderListPerStore(data.responseJSON.results)
+        });
 });
 $(document).on('click', '#btnCloseTodaysOrder', function() {
     var today = moment().format('YYYY-MM-DD');
@@ -35,7 +39,7 @@ $(document).on('click', '#btnCloseTodaysOrder', function() {
         data: JSON.stringify({}),
         dataType: "json"
     }).done(function (data) {
-        if (!data || !data.result) {
+        if (!data || !data.results) {
             alert('注文の締め切りに失敗しました。');
         }
         alert('注文を締め切りました。')
@@ -55,7 +59,7 @@ $(document).on('click', '#btnReopenTodaysOrder', function () {
         data: JSON.stringify({}),
         dataType: "json"
     }).done(function (data) {
-        if (!data || !data.result) {
+        if (!data || !data.results) {
             alert('注文のsaikaiに失敗しました。');
         }
         alert('注文をsaikaiしました。')
@@ -82,7 +86,7 @@ $(document).on('click', '#btnSubmitOrder', function() {
         data: JSON.stringify(post_data),
         dataType: "json"
     }).done(function (data) {
-        if (!data || !data.result) {
+        if (!data || !data.results) {
             alert('注文の保存に失敗しました。');
         }
         if (data.status === 200) {
@@ -109,7 +113,7 @@ $(document).on('click', '#btnCancelOrder', function(){
         data: JSON.stringify(post_data),
         dataType: "json"
     }).done(function (data) {
-        if (!data || !data.result) {
+        if (!data || !data.results) {
             alert('注文の取り消しに失敗しました。');
         }
         if (data.status === 200) {
@@ -162,21 +166,21 @@ $(document).on('change', '#txtOrderDate', function() {
         + user_info.id + '/' 
         + $('#txtOrderDate').val())
     .done(function(data) {
-        if (!data || !data.result || data.result.length === 0) {
+            if (!data || !data.results || data.results.length === 0) {
             $('#selStore option:first')
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
             return;
         }
-        $('#selStore option[value="' + data.result[0].store_id + '"]')
+            $('#selStore option[value="' + data.results[0].store_id + '"]')
             .attr('selected', 'selected');
-        $('#selMenu option[value="' + data.result[0].menu_id + '"]')
+            $('#selMenu option[value="' + data.results[0].menu_id + '"]')
             .attr('selected', 'selected');
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
-            if (data.result.is_order_closed) {
+            if (data.results.is_order_closed) {
                 $('#orderCloseInfo')
                     .css('display', 'block');
                 $('#btnCloseTodaysOrder').css('display', 'none');
@@ -197,7 +201,7 @@ $(document).on('change', '#txtOrderDate', function() {
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
-            if (data.responseJSON.result.is_order_closed) {
+            if (data.responseJSON.results.is_order_closed) {
                 $('#orderCloseInfo')
                     .css('display', 'block');
                 $('#btnCloseTodaysOrder').css('display', 'none');
@@ -227,15 +231,15 @@ $(window).on('load', function () {
             data: JSON.stringify({'code': code}),
             dataType: "json"
         }).done(function (data) {
-            if (!data || !data.result) {
+            if (!data || !data.results) {
                 alert('yammerのユーザー情報取得に失敗しました。');
             }
             user_info = {
-                'token': data.result.token,
-                'email': data.result.email,
-                'user_name': data.result.user_name,
-                'is_soumu': data.result.is_soumu,
-                'id': data.result.id
+                'token': data.results.token,
+                'email': data.results.email,
+                'user_name': data.results.user_name,
+                'is_soumu': data.results.is_soumu,
+                'id': data.results.id
             };
             localStorage.setItem('user_info', JSON.stringify(user_info));
             //codeを取り除く
@@ -281,13 +285,14 @@ function createOrderListPerStore(orderData) {
         {name:"user_name",index:"user_name",width:200,align:"center"},
         {name:"menu_id",index:"menu_id",width:200,align:"center", hidden:true},
         {name:"menu_name",index:"menu_name",width:200,align:"center"},
+        {name: "unit", index: "unit", width: 50, align: "center"},
         {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
         {name:"store_name",index:"store_name",width:200,align:"center"},
         {name:"proxy_user_id",index:"proxy_user_id",width:70,align:"center", hidden:true},
         {name:"proxy_user_name",index:"proxy_user_name",width:70,align:"center", hidden:true}
     ];
     //列の表示名
-    var colNames = ["日付","社員ID","社員名","注文ID","注文名","店ID","店名","代理社員ID","代理社員名"];
+    var colNames = ["日付", "社員ID", "社員名", "注文ID", "注文名", "kosu", "店ID", "店名", "代理社員ID", "代理社員名"];
     //テーブルの作成
     $("#tabOrderList").jqGrid({
         data:orderData,  //表示したいデータ

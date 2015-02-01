@@ -20,12 +20,12 @@ def post_order():
     order = Order.select(Order.user == User(id=content_body_dict['user_id'])
                          and Order.order_date == content_body_dict['order_date'])
     if order.exists():
-        result = {'result': {'user': {
+        results = {'results': {'user': {
             'user_id': content_body_dict['user_id'],
             'order_date': content_body_dict['order_date'],
             'id': order[0].get_id()
         }}}
-        response = jsonify({'result': result})
+        response = jsonify({'results': results})
         response.status_code = 200
         return response
 
@@ -41,12 +41,12 @@ def post_order():
     # 保存
     order.save()
 
-    result = {'result': {'user': {
+    results = {'results': {'user': {
         'user_id': order.user.get_id(),
         'order_date': order.order_date,
         'id': order.get_id()
     }}}
-    response = jsonify(result)
+    response = jsonify(results)
 
     # ステータスコードは Created (201)
     response.status_code = 201
@@ -66,12 +66,12 @@ def delete_order():
             .where(Order.user == User(id=content_body_dict['user_id'])
                    and Order.order_date == content_body_dict['order_date'])
         q.execute()
-        result = {'result': True}
-        response = jsonify({'result': result})
+        results = {'results': True}
+        response = jsonify({'results': results})
         response.status_code = 200
         return response
 
-    result = {'result': True}
+    result = {'results': True}
     response = jsonify(result)
 
     response.status_code = 404
@@ -80,24 +80,25 @@ def delete_order():
 
 def _get_orders(orders, is_order_closed=False):
     if not orders.exists():
-        response = jsonify({'result': {'is_order_closed': is_order_closed}})
+        response = jsonify({'results': {'is_order_closed': is_order_closed}})
         response.status_code = 404
         return response
 
-    result = {'result': [
+    results = {'results': [
         {'id': o.id,
          'order_date': str(o.order_date),
          'menu_id': o.menu.get_id(),
          'menu_name': o.menu.menu_name,
+         'unit': o.unit,
          'user_id': o.user.get_id(),
          'user_name': o.user.user_name,
          'store_id': o.menu.store.get_id(),
          'store_name': o.menu.store.store_name,
          'proxy_user_id': o.proxy_user.get_id() if o.proxy_user else '',
          'proxy_user_name': o.proxy_user.user_name if o.proxy_user else '',
-        } for o in orders]}
-    result.is_order_closed = is_order_closed
-    response = jsonify(result)
+        } for o in orders]
+        , 'is_order_closed': is_order_closed}
+    response = jsonify(results)
     response.status_code = 200
     return response
 
@@ -126,6 +127,7 @@ def get_order_by_user_date(user_id, order_date):
         .where(Order.user == User(id=user_id, email='', user_name='')
                , Order.order_date == order_date)
     return _get_orders(orders_query, _get_is_order_closed(order_date))
+
 
 @order_controller.route('/order_close_today/<order_date>', methods=['POST'])
 def close_today_order(order_date):
