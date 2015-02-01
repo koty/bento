@@ -13,7 +13,7 @@ function changeDiv() {
         $('#divManage').css('display', 'none');
     }
 }
-$(document).on('click', '#btnOrdcreaer', function () {
+$(document).on('click', '#btnOrder', function () {
     if ($('#txtOrderDate').val() === '') {
         alert('注文日を入力してください。');
     }
@@ -42,7 +42,7 @@ $(document).on('click', '#btnCloseTodaysOrder', function() {
         if (!data || !data.results) {
             alert('注文の締め切りに失敗しました。');
         }
-        alert('注文を締め切りました。')
+        alert('注文を締め切りました。');
         $('#orderCloseInfo').css('display', 'block');
         $('#btnCloseTodaysOrder').css('display', 'none');
         $('#btnReopenTodaysOrder').css('display', 'block');
@@ -60,9 +60,9 @@ $(document).on('click', '#btnReopenTodaysOrder', function () {
         dataType: "json"
     }).done(function (data) {
         if (!data || !data.results) {
-            alert('注文のsaikaiに失敗しました。');
+            alert('注文の再開に失敗しました。');
         }
-        alert('注文をsaikaiしました。')
+        alert('注文を再開しました。');
         $('#orderCloseInfo').css('display', 'none');
         $('#btnCloseTodaysOrder').css('display', 'block');
         $('#btnReopenTodaysOrder').css('display', 'none');
@@ -72,6 +72,9 @@ $(document).on('click', '#btnReopenTodaysOrder', function () {
 });
 $(document).on('click', '#btnBackFromManage', function() {
     location.href="#";
+});
+$(document).on('click', '#btnBackFromOrder', function () {
+    location.href = "#";
 });
 $(document).on('click', '#btnSubmitOrder', function() {
     var post_data = {};
@@ -97,6 +100,8 @@ $(document).on('click', '#btnSubmitOrder', function() {
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
+        $('#btnSubmitOrder').css('display', 'none');
+        $('#btnCancelOrder').css('display', 'block');
         location.href="#";
     }).fail(function (data) {
         alert(data.responseText);
@@ -122,6 +127,8 @@ $(document).on('click', '#btnCancelOrder', function(){
         $('#lblOrderStatus').text('注文未済みです。')
             .addClass('alert-warning')
             .removeClass('alert-success');
+        $('#btnSubmitOrder').css('display', 'block');
+        $('#btnCancelOrder').css('display', 'none');
         location.href="#";
     }).fail(function (data) {
         alert('注文はありません。');
@@ -180,14 +187,14 @@ $(document).on('change', '#txtOrderDate', function() {
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
+            $('#btnSubmitOrder').css('display', 'none');
+            $('#btnCancelOrder').css('display', 'block');
             if (data.results.is_order_closed) {
-                $('#orderCloseInfo')
-                    .css('display', 'block');
+                $('#orderCloseInfo').css('display', 'block');
                 $('#btnCloseTodaysOrder').css('display', 'none');
                 $('#btnReopenTodaysOrder').css('display', 'block');
             } else {
-                $('#orderCloseInfo')
-                    .css('display', 'none');
+                $('#orderCloseInfo').css('display', 'none');
                 $('#btnCloseTodaysOrder').css('display', 'block');
                 $('#btnReopenTodaysOrder').css('display', 'none');
             }
@@ -197,6 +204,8 @@ $(document).on('change', '#txtOrderDate', function() {
             $('#lblOrderStatus').text('注文未済みです。')
                 .addClass('alert-warning')
                 .removeClass('alert-success');
+            $('#btnSubmitOrder').css('display', 'block');
+            $('#btnCancelOrder').css('display', 'none');
             $('#selStore option:first')
                 .attr('selected', 'selected');
             $('#selMenu option:first')
@@ -273,7 +282,7 @@ $(window).on('load', function () {
         $('#selStore').html(store_options);
         $('#selStore option:first').attr('selected','selected');
         $('#selStore').trigger('change');
-    })
+    });
     changeDiv();
 });
 
@@ -293,9 +302,15 @@ function createOrderListPerStore(orderData) {
     ];
     //列の表示名
     var colNames = ["日付", "社員ID", "社員名", "注文ID", "注文名", "kosu", "店ID", "店名", "代理社員ID", "代理社員名"];
+    var sum = function (arr) {
+        return arr.reduce(function (prev, current, i, arr) {
+            return prev + current;
+        });
+    };
+
     //テーブルの作成
     $("#tabOrderList").jqGrid({
-        data:orderData,  //表示したいデータ
+        data: orderData,  //表示したいデータ
         datatype : "local",            //データの種別 他にjsonやxmlも選べます。
         //しかし、私はlocalが推奨です。
         colNames : colNames,           //列の表示名
@@ -306,6 +321,8 @@ function createOrderListPerStore(orderData) {
         height : 200,                  //高さ
         width : 500,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
-    });
+        viewrecords: true,              //footerの右下に表示する。
+        footerrow: true
+    }).jqGrid('filterToolbar')
+        .jqGrid('footerData', 'set', {unit: 4});
 }
