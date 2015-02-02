@@ -27,7 +27,7 @@ $(document).on('click', '#btnManage', function() {
         createOrderListPerStore(data.results)
     })
         .fail(function (data) {
-            createOrderListPerStore(data.responseJSON.results)
+            createOrderListPerStore([]);
         });
 });
 $(document).on('click', '#btnCloseTodaysOrder', function() {
@@ -323,7 +323,9 @@ function createOrderListPerStore(orderData) {
         if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
             prev.push(current);
         } else {
-            var target = prev.filter(function(value) {return value.menu_id === current.menu_id;})
+            var target = prev.filter(function (value) {
+                return value.menu_id === current.menu_id;
+            });
             target.unit += current.unit;
             target.price += current.price;
         }
@@ -368,7 +370,9 @@ function createOrderListPerStore(orderData) {
         if (!prev.some(function(value) {return value.user_id === current.user_id;})) {
             prev.push(current);
         } else {
-            var target = prev.filter(function(value) {return value.user_id === current.user_id;})
+            var target = prev.filter(function (value) {
+                return value.user_id === current.user_id;
+            });
             target.unit += current.unit;
             target.price += current.price;
         }
