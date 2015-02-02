@@ -91,6 +91,7 @@ def _get_orders(orders, is_order_closed=False):
          'menu_id': o.menu.get_id(),
          'menu_name': o.menu.menu_name,
          'unit': o.unit,
+         'price': o.unit * o.menu.unit_price,
          'user_id': o.user.get_id(),
          'user_name': o.user.user_name,
          'store_id': o.menu.store.get_id(),

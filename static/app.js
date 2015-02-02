@@ -294,22 +294,18 @@ function createOrderListPerStore(orderData) {
         {name:"user_name",index:"user_name",width:200,align:"center"},
         {name:"menu_id",index:"menu_id",width:200,align:"center", hidden:true},
         {name:"menu_name",index:"menu_name",width:200,align:"center"},
-        {name: "unit", index: "unit", width: 50, align: "center"},
+        {name:"unit", index: "unit", width: 50, align: "center"},
+        {name:"price", index: "unit", width: 50, align: "center"},
         {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
         {name:"store_name",index:"store_name",width:200,align:"center"},
         {name:"proxy_user_id",index:"proxy_user_id",width:70,align:"center", hidden:true},
         {name:"proxy_user_name",index:"proxy_user_name",width:70,align:"center", hidden:true}
     ];
     //列の表示名
-    var colNames = ["日付", "社員ID", "社員名", "注文ID", "注文名", "kosu", "店ID", "店名", "代理社員ID", "代理社員名"];
-    var sum = function (arr) {
-        return arr.reduce(function (prev, current, i, arr) {
-            return prev + current;
-        });
-    };
+    var colNames = ["日付", "社員ID", "社員名", "注文ID", "注文名", "個数", "金額", "店ID", "店名", "代理社員ID", "代理社員名"];
 
     //テーブルの作成
-    $("#tabOrderList").jqGrid({
+    $("#tabOrderDetail").jqGrid({
         data: orderData,  //表示したいデータ
         datatype : "local",            //データの種別 他にjsonやxmlも選べます。
         //しかし、私はlocalが推奨です。
@@ -317,12 +313,81 @@ function createOrderListPerStore(orderData) {
         colModel : colModelSettings,   //列ごとの設定
         rowNum : 100,                   //一ページに表示する行数
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
-        caption : "注文状況",    //ヘッダーのキャプション
-        height : 200,                  //高さ
+        caption : "当月注文状況詳細",    //ヘッダーのキャプション
+        height : 'auto',                  //高さ
         width : 500,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true,              //footerの右下に表示する。
-        footerrow: true
-    }).jqGrid('filterToolbar')
-        .jqGrid('footerData', 'set', {unit: 4});
+        viewrecords: true              //footerの右下に表示する。
+    });
+    var summaryOrderData = orderData.reduce(function (prev, current) {
+        if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
+            prev.push(current);
+        } else {
+            var target = prev.filter(function(value) {return value.menu_id === current.menu_id;})
+            target.unit += current.unit;
+            target.price += current.price;
+        }
+        return prev;
+    }, []);
+
+    //列の設定
+    var colSummaryModelSettings= [
+        {name:"order_date",index:"date",width:100,align:"center"},
+        {name:"menu_id",index:"menu_id",width:200,align:"center", hidden:true},
+        {name:"menu_name",index:"menu_name",width:200,align:"center"},
+        {name:"unit", index: "unit", width: 50, align: "center"},
+        {name:"price", index: "unit_price", width: 50, align: "center"},
+        {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
+        {name:"store_name",index:"store_name",width:200,align:"center"},
+    ];
+    //列の表示名
+    var colSummaryNames = ["日付", "注文ID", "注文名", "個数", "金額", "店ID", "店名"];
+    $("#tabOrderSummary").jqGrid({
+        data: summaryOrderData,  //表示したいデータ
+        datatype : "local",            //データの種別 他にjsonやxmlも選べます。
+        //しかし、私はlocalが推奨です。
+        colNames : colSummaryNames,           //列の表示名
+        colModel : colSummaryModelSettings,   //列ごとの設定
+        rowNum : 100,                   //一ページに表示する行数
+        rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
+        caption : "本日注文状況",    //ヘッダーのキャプション
+        height : 'auto',                  //高さ
+        width : 500,                   //幅
+        shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
+        viewrecords: true              //footerの右下に表示する。
+    });
+
+    //列の設定
+    var colUserModelSettings= [
+        {name:"user_id",index:"user_id",width:70,align:"center", hidden:true},
+        {name:"user_name",index:"user_name",width:200,align:"center"},
+        {name:"unit", index: "unit", width: 50, align: "center"},
+        {name:"price", index: "unit", width: 50, align: "center"},
+    ];
+    var userOrderData = orderData.reduce(function (prev, current) {
+        if (!prev.some(function(value) {return value.user_id === current.user_id;})) {
+            prev.push(current);
+        } else {
+            var target = prev.filter(function(value) {return value.user_id === current.user_id;})
+            target.unit += current.unit;
+            target.price += current.price;
+        }
+        return prev;
+    }, []);
+
+    //テーブルの作成
+    $("#tabOrderUserDetail").jqGrid({
+        data: userOrderData,  //表示したいデータ
+        datatype : "local",            //データの種別 他にjsonやxmlも選べます。
+        //しかし、私はlocalが推奨です。
+        colNames : ["社員ID", "社員名", "個数", "金額"],           //列の表示名
+        colModel : colUserModelSettings,   //列ごとの設定
+        rowNum : 100,                   //一ページに表示する行数
+        rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
+        caption : "当月個人別注文状況詳細",    //ヘッダーのキャプション
+        height : 'auto',                  //高さ
+        width : 500,                   //幅
+        shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
+        viewrecords: true              //footerの右下に表示する。
+    });
 }

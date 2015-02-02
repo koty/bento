@@ -37,3 +37,7 @@ button {
 #btnReopenTodaysOrder {
     display: none;
 }
+
+.ui-jqgrid {
+    margin: 1em;
+}
