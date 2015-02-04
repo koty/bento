@@ -42,8 +42,8 @@ def auth_yammer():
     res_bytes = conn.getresponse()
     res_json = res_bytes.readall().decode("UTF-8")
     conn.close()
-    if "invalid" in res_json:
-        return {'results': False}
+    if "invalid" in res_json or "not allowed" in res_json:
+        return res_json
     res = json.loads(res_json)
     if not res or not res['access_token'] or not res['access_token']['token']:
         return {'results': False}
