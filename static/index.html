@@ -9,10 +9,12 @@
         <link rel="stylesheet" href="//cdn.jsdelivr.net/jqgrid/4.6.0/css/ui.jqgrid.css">
         <link rel="stylesheet" href="bootstrap-select.min.css">
         <link rel="stylesheet" href="./app.css">
+        <script src="https://c64.assets-yammer.com/assets/platform_js_sdk.js" data-app-id="ho0KrXhJWwDRCGzwhsHtA"></script>
     </head>
     <body>
         <div class="important">
-            <button id="authYammer" class="btn btn-block btn-embossed btn-primary">yammerにログイン</button>
+            <span id="yammer-login"></span>
+            <script> yam.connect.loginButton('#yammer-login', function(res){yammer_login_callback(res);}); </script>
             <span class="alert alert-info" id="yammerUserInfo"></span>
             <span class="alert alert-warning" id="orderCloseInfo">注文は締め切られました。</span>
         </div>

@@ -107,6 +107,35 @@ $(document).on('click', '#btnSubmitOrder', function() {
         alert(data.responseText);
     });
 });
+
+function yammer_login_callback(resp) {
+    if (resp.authResponse) {
+        var token = resp.access_token.token;
+        $.ajax({
+            type: "POST",
+            url: "/auth",
+            contentType: "application/json",
+            data: JSON.stringify({'token': token}),
+            dataType: "json"
+        }).done(function (data) {
+            if (!data || !data.results) {
+                alert('yammerのユーザー情報取得に失敗しました。');
+            }
+            user_info = {
+                'token': data.results.token,
+                'email': data.results.email,
+                'user_name': data.results.user_name,
+                'is_soumu': data.results.is_soumu,
+                'id': data.results.id
+            };
+            localStorage.setItem('user_info', JSON.stringify(user_info));
+            verifyAuth();
+        }).fail(function (data) {
+            alert(data.responseText);
+        });
+    }
+}
+
 $(document).on('click', '#btnCancelOrder', function(){
     var post_data = {};
     post_data.user_id = user_info.id;
@@ -134,23 +163,6 @@ $(document).on('click', '#btnCancelOrder', function(){
         alert('注文はありません。');
         location.href="#";
     });
-});
-$(document).on('click', '#authYammer', function() {
-    var ORG_KEY = 'yammer-organization';
-    var yammer_org = localStorage.getItem(ORG_KEY);
-    if (!yammer_org) {
-        if (location.search) {
-            yammer_org = location.search.split('=')[1];
-        } else {
-            yammer_org = window.prompt("yammerの組織名を入力してください", "");
-        }
-        if (!yammer_org) return;
-        localStorage.setItem(ORG_KEY, yammer_org);
-    }
-    location.href = 'https://www.yammer.com/'
-        + yammer_org
-        + '/dialog/oauth?client_id=7P0TIAkZg8TgXAHSwiB0KQ&redirect_uri='
-        + encodeURIComponent(location.href);
 });
 $(document).on('change', '#selStore', function(){
     var store_id = $("#selStore").find(':selected').val();
@@ -227,36 +239,7 @@ $(document).on('change', '#txtOrderDate', function() {
 $(window).hashchange(function() {
     changeDiv();
 });
-var user_info;
-$(window).on('load', function () {
-    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
-        .trigger('change');
-    if (location.search.indexOf("?code=") >= 0) {
-        var code = location.search.split('=')[1];
-        $.ajax({
-            type: "POST",
-            url: "/auth",
-            contentType: "application/json",
-            data: JSON.stringify({'code': code}),
-            dataType: "json"
-        }).done(function (data) {
-            if (!data || !data.results) {
-                alert('yammerのユーザー情報取得に失敗しました。');
-            }
-            user_info = {
-                'token': data.results.token,
-                'email': data.results.email,
-                'user_name': data.results.user_name,
-                'is_soumu': data.results.is_soumu,
-                'id': data.results.id
-            };
-            localStorage.setItem('user_info', JSON.stringify(user_info));
-            //codeを取り除く
-            location.href = location.href.split('?')[0];
-        }).fail(function (data) {
-            alert(data.responseText);
-        });
-    }
+function verifyAuth() {
     var user_info_json = localStorage.getItem('user_info');
     if (user_info_json != null) {
         user_info = JSON.parse(user_info_json);
@@ -270,6 +253,12 @@ $(window).on('load', function () {
             $('#btnManage').css('display', 'block');
         }
     }
+}
+var user_info;
+$(window).on('load', function () {
+    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
+        .trigger('change');
+    verifyAuth();
     $('#btnOrder').attr('disabled', user_info == null);
     $('#btnManage').attr('disabled', user_info == null);
 
