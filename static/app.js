@@ -111,28 +111,38 @@ $(document).on('click', '#btnSubmitOrder', function() {
 function yammer_login_callback(resp) {
     if (resp.authResponse) {
         var token = resp.access_token.token;
-        $.ajax({
-            type: "POST",
-            url: "/auth",
-            contentType: "application/json",
-            data: JSON.stringify({'token': token}),
-            dataType: "json"
-        }).done(function (data) {
-            if (!data || !data.results) {
-                alert('yammerのユーザー情報取得に失敗しました。');
+        yam.platform.setAuthToken (
+            token,
+            function (response) {
+                if (response.authResponse) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/auth",
+                        contentType: "application/json",
+                        data: JSON.stringify({'token': token}),
+                        dataType: "json"
+                    }).done(function (data) {
+                        if (!data || !data.results) {
+                            alert('yammerのユーザー情報取得に失敗しました。');
+                        }
+                        user_info = {
+                            'token': data.results.token,
+                            'email': data.results.email,
+                            'user_name': data.results.user_name,
+                            'is_soumu': data.results.is_soumu,
+                            'id': data.results.id
+                        };
+                        localStorage.setItem('user_info', JSON.stringify(user_info));
+                        verifyAuth();
+                    }).fail(function (data) {
+                        alert(data.responseText);
+                    });
+                } else {
+                    alert("Yammer セキュリティトークン設定失敗");
+                }
             }
-            user_info = {
-                'token': data.results.token,
-                'email': data.results.email,
-                'user_name': data.results.user_name,
-                'is_soumu': data.results.is_soumu,
-                'id': data.results.id
-            };
-            localStorage.setItem('user_info', JSON.stringify(user_info));
-            verifyAuth();
-        }).fail(function (data) {
-            alert(data.responseText);
-        });
+        );
+
     }
 }
 
