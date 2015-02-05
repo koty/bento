@@ -107,13 +107,22 @@ $(document).on('click', '#btnSubmitOrder', function() {
         alert(data.responseText);
     });
 });
-
-function yammer_login_callback(resp) {
-    if (resp.authResponse) {
-        var token = resp.access_token.token;
-        yam.platform.setAuthToken (
-            token,
-            function (response) {
+function yammer_login() {
+    yam.connect.loginButton('#yammer-login', function (resp) {
+        if (resp.authResponse) {
+            yam.platform.request({
+                url: "users.json",     //this is one of many REST endpoints that are available
+                method: "GET",
+                data: {}    //use the data object literal to specify parameters, as documented in the REST API section of this developer site
+            }).done(function (user) { //print message response information to the console
+                alert("The request was successful.");
+                console.dir(user);
+            }).fail(function (user) {
+                alert("There was an error with the request.");
+            });
+            /*
+            var token = resp.access_token.token;
+            yam.platform.setAuthToken(token, function (response) {
                 if (response.authResponse) {
                     $.ajax({
                         type: "POST",
@@ -140,10 +149,10 @@ function yammer_login_callback(resp) {
                 } else {
                     alert("Yammer セキュリティトークン設定失敗");
                 }
-            }
-        );
-
-    }
+            });
+            */
+        }
+    });
 }
 
 $(document).on('click', '#btnCancelOrder', function(){
@@ -271,6 +280,8 @@ $(window).on('load', function () {
     verifyAuth();
     $('#btnOrder').attr('disabled', user_info == null);
     $('#btnManage').attr('disabled', user_info == null);
+
+    yammer_login();
 
     var last_selected_store_menu = localStorage.getItem('last_selected_store_menu');
     $.getJSON('/stores').done(function(data) {
