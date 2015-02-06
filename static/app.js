@@ -21,7 +21,8 @@ $(document).on('click', '#btnOrder', function () {
 });
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
-    $.getJSON('/orders_per_month')
+    var store_id = $('#selStore').find(":selected").val();
+    $.getJSON('/orders_per_month/' + store_id)
         .done(function (data) {
         if (!data || !data.results) return;
         createOrderListPerStore(data.results)
@@ -41,6 +42,7 @@ $(document).on('click', '#btnCloseTodaysOrder', function() {
     }).done(function (data) {
         if (!data || !data.results) {
             alert('注文の締め切りに失敗しました。');
+            return;
         }
         alert('注文を締め切りました。');
         $('#orderCloseInfo').css('display', 'block');
@@ -61,6 +63,7 @@ $(document).on('click', '#btnReopenTodaysOrder', function () {
     }).done(function (data) {
         if (!data || !data.results) {
             alert('注文の再開に失敗しました。');
+            return;
         }
         alert('注文を再開しました。');
         $('#orderCloseInfo').css('display', 'none');
@@ -104,8 +107,8 @@ $(document).on('click', '#btnSubmitOrder', function() {
         $('#btnCancelOrder').css('display', 'block');
         $('#selStore').attr('disabled', 'disabled');
         $('#selMenu').attr('disabled', 'disabled');
-        location.href="#";
         localStorage.setItem('latest_order', JSON.stringify(post_data));
+        location.href="#";
     }).fail(function (data) {
         alert(data.responseText);
     });
@@ -333,7 +336,7 @@ function createOrderListPerStore(orderData) {
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
         caption : "当月注文状況詳細",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
-        width : 500,                   //幅
+        width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
@@ -372,7 +375,7 @@ function createOrderListPerStore(orderData) {
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
         caption : "本日注文状況",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
-        width : 500,                   //幅
+        width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
@@ -408,7 +411,7 @@ function createOrderListPerStore(orderData) {
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
         caption : "当月個人別注文状況詳細",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
-        width : 500,                   //幅
+        width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
