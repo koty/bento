@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import http.client
 
 from flask import Flask, jsonify
 from flask import request
@@ -31,28 +30,10 @@ def favicon():
 @consumes('application/json')
 def auth_yammer():
     content_body_dict = json.loads(request.data.decode())
-    code = content_body_dict['code']
-    if not code:
-        return {'result': False}
-    conn = http.client.HTTPSConnection("www.yammer.com")
-    conn.request("GET", "/oauth2/access_token.json"
-                 + "?client_id=" + InitialData.get_client_id()
-                 + "&client_secret=" + InitialData.get_client_secret()
-                 + "&code=" + code)
-    res_bytes = conn.getresponse()
-    res_json = res_bytes.readall().decode("UTF-8")
-    conn.close()
-    if "invalid" in res_json or "not allowed" in res_json:
-        return res_json
-    res = json.loads(res_json)
-    if not res or not res['access_token'] or not res['access_token']['token']:
-        return {'results': False}
-    token = res['access_token']['token']
-    email = res['user']['email']
+    email = content_body_dict['email']
     user = User.get(User.email == email)
     results = {'results': {
-        'token': token,
-        'user_name': res['user']['full_name'],
+        'user_name': user.user_name,
         'email': email,
         'is_soumu': user.is_soumu,
         'id': user.get_id(),

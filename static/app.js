@@ -21,7 +21,8 @@ $(document).on('click', '#btnOrder', function () {
 });
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
-    $.getJSON('/orders_per_month')
+    var store_id = $('#selStore').find(":selected").val();
+    $.getJSON('/orders_per_month/' + store_id)
         .done(function (data) {
         if (!data || !data.results) return;
         createOrderListPerStore(data.results)
@@ -41,6 +42,7 @@ $(document).on('click', '#btnCloseTodaysOrder', function() {
     }).done(function (data) {
         if (!data || !data.results) {
             alert('注文の締め切りに失敗しました。');
+            return;
         }
         alert('注文を締め切りました。');
         $('#orderCloseInfo').css('display', 'block');
@@ -61,6 +63,7 @@ $(document).on('click', '#btnReopenTodaysOrder', function () {
     }).done(function (data) {
         if (!data || !data.results) {
             alert('注文の再開に失敗しました。');
+            return;
         }
         alert('注文を再開しました。');
         $('#orderCloseInfo').css('display', 'none');
@@ -102,11 +105,50 @@ $(document).on('click', '#btnSubmitOrder', function() {
             .removeClass('alert-warning');
         $('#btnSubmitOrder').css('display', 'none');
         $('#btnCancelOrder').css('display', 'block');
+        $('#selStore').attr('disabled', 'disabled');
+        $('#selMenu').attr('disabled', 'disabled');
+        localStorage.setItem('latest_order', JSON.stringify(post_data));
         location.href="#";
     }).fail(function (data) {
         alert(data.responseText);
     });
 });
+function yammer_login() {
+    yam.connect.loginButton('#yammer-login', function (resp) {
+        if (resp.authResponse) {
+            yam.platform.request({
+                url: "users/current.json",     //this is one of many REST endpoints that are available
+                method: "GET",
+                data: {}    //use the data object literal to specify parameters, as documented in the REST API section of this developer site
+            }).done(function (current_user) { //print message response information to the console
+                $.ajax({
+                    type: "POST",
+                    url: "/auth",
+                    contentType: "application/json",
+                    data: JSON.stringify({'email': current_user.email}),
+                    dataType: "json"
+                }).done(function (data) {
+                    if (!data || !data.results) {
+                        alert('yammerのユーザー情報取得に失敗しました。');
+                    }
+                    user_info = {
+                        'email': data.results.email,
+                        'user_name': data.results.user_name,
+                        'is_soumu': data.results.is_soumu,
+                        'id': data.results.id
+                    };
+                    localStorage.setItem('user_info', JSON.stringify(user_info));
+                    verifyAuth();
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
+            }).fail(function (user) {
+                alert(user);
+            });
+        }
+    });
+}
+
 $(document).on('click', '#btnCancelOrder', function(){
     var post_data = {};
     post_data.user_id = user_info.id;
@@ -129,28 +171,12 @@ $(document).on('click', '#btnCancelOrder', function(){
             .removeClass('alert-success');
         $('#btnSubmitOrder').css('display', 'block');
         $('#btnCancelOrder').css('display', 'none');
-        location.href="#";
+        $('#selStore').removeAttr('disabled');
+        $('#selMenu').removeAttr('disabled');
     }).fail(function (data) {
         alert('注文はありません。');
         location.href="#";
     });
-});
-$(document).on('click', '#authYammer', function() {
-    var ORG_KEY = 'yammer-organization';
-    var yammer_org = localStorage.getItem(ORG_KEY);
-    if (!yammer_org) {
-        if (location.search) {
-            yammer_org = location.search.split('=')[1];
-        } else {
-            yammer_org = window.prompt("yammerの組織名を入力してください", "");
-        }
-        if (!yammer_org) return;
-        localStorage.setItem(ORG_KEY, yammer_org);
-    }
-    location.href = 'https://www.yammer.com/'
-        + yammer_org
-        + '/dialog/oauth?client_id=7P0TIAkZg8TgXAHSwiB0KQ&redirect_uri='
-        + encodeURIComponent(location.href);
 });
 $(document).on('change', '#selStore', function(){
     var store_id = $("#selStore").find(':selected').val();
@@ -184,6 +210,8 @@ $(document).on('change', '#txtOrderDate', function() {
             .attr('selected', 'selected');
             $('#selMenu option[value="' + data.results[0].menu_id + '"]')
             .attr('selected', 'selected');
+            $('#selStore').attr('disabled', 'disabled');
+            $('#selMenu').attr('disabled', 'disabled');
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
@@ -210,6 +238,16 @@ $(document).on('change', '#txtOrderDate', function() {
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
+            $('#selStore').removeAttr('disabled');
+            $('#selMenu').removeAttr('disabled');
+            var latest_order_json = localStorage.getItem('latest_order')
+            if (latest_order_json) {
+                var latest_order = JSON.parse(latest_order_json);
+                $('#selStore option[value="' + latest_order.store_id + '"]')
+                    .attr('selected', 'selected');
+                $('#selMenu option[value="' + latest_order.menu_id + '"]')
+                    .attr('selected', 'selected');
+            }
             if (data.responseJSON.results.is_order_closed) {
                 $('#orderCloseInfo')
                     .css('display', 'block');
@@ -227,40 +265,10 @@ $(document).on('change', '#txtOrderDate', function() {
 $(window).hashchange(function() {
     changeDiv();
 });
-var user_info;
-$(window).on('load', function () {
-    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
-        .trigger('change');
-    if (location.search.indexOf("?code=") >= 0) {
-        var code = location.search.split('=')[1];
-        $.ajax({
-            type: "POST",
-            url: "/auth",
-            contentType: "application/json",
-            data: JSON.stringify({'code': code}),
-            dataType: "json"
-        }).done(function (data) {
-            if (!data || !data.results) {
-                alert('yammerのユーザー情報取得に失敗しました。');
-            }
-            user_info = {
-                'token': data.results.token,
-                'email': data.results.email,
-                'user_name': data.results.user_name,
-                'is_soumu': data.results.is_soumu,
-                'id': data.results.id
-            };
-            localStorage.setItem('user_info', JSON.stringify(user_info));
-            //codeを取り除く
-            location.href = location.href.split('?')[0];
-        }).fail(function (data) {
-            alert(data.responseText);
-        });
-    }
+function verifyAuth() {
     var user_info_json = localStorage.getItem('user_info');
     if (user_info_json != null) {
         user_info = JSON.parse(user_info_json);
-        $('#authYammer').css('display', 'none');
         $('#yammerUserInfo')
             .css('display', 'block')
             .text(user_info.user_name
@@ -270,8 +278,21 @@ $(window).on('load', function () {
             $('#btnManage').css('display', 'block');
         }
     }
-    $('#btnOrder').attr('disabled', user_info == null);
-    $('#btnManage').attr('disabled', user_info == null);
+}
+var user_info;
+$(window).on('load', function () {
+    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
+        .trigger('change');
+    verifyAuth();
+    if (user_info) {
+        $('#btnOrder').removeAttr('disabled');
+        $('#btnManage').removeAttr('disabled');
+    } else {
+        $('#btnOrder').attr('disabled', 'disabled');
+        $('#btnManage').attr('disabled', 'disabled');
+    }
+
+    yammer_login();
 
     var last_selected_store_menu = localStorage.getItem('last_selected_store_menu');
     $.getJSON('/stores').done(function(data) {
@@ -315,7 +336,7 @@ function createOrderListPerStore(orderData) {
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
         caption : "当月注文状況詳細",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
-        width : 500,                   //幅
+        width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
@@ -354,7 +375,7 @@ function createOrderListPerStore(orderData) {
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
         caption : "本日注文状況",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
-        width : 500,                   //幅
+        width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
@@ -390,7 +411,7 @@ function createOrderListPerStore(orderData) {
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
         caption : "当月個人別注文状況詳細",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
-        width : 500,                   //幅
+        width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
