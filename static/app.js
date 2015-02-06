@@ -102,7 +102,10 @@ $(document).on('click', '#btnSubmitOrder', function() {
             .removeClass('alert-warning');
         $('#btnSubmitOrder').css('display', 'none');
         $('#btnCancelOrder').css('display', 'block');
+        $('#selStore').attr('disabled', 'disabled');
+        $('#selMenu').attr('disabled', 'disabled');
         location.href="#";
+        localStorage.setItem('latest_order', JSON.stringify(post_data));
     }).fail(function (data) {
         alert(data.responseText);
     });
@@ -111,46 +114,34 @@ function yammer_login() {
     yam.connect.loginButton('#yammer-login', function (resp) {
         if (resp.authResponse) {
             yam.platform.request({
-                url: "users.json",     //this is one of many REST endpoints that are available
+                url: "users/current.json",     //this is one of many REST endpoints that are available
                 method: "GET",
                 data: {}    //use the data object literal to specify parameters, as documented in the REST API section of this developer site
-            }).done(function (user) { //print message response information to the console
-                alert("The request was successful.");
-                console.dir(user);
+            }).done(function (current_user) { //print message response information to the console
+                $.ajax({
+                    type: "POST",
+                    url: "/auth",
+                    contentType: "application/json",
+                    data: JSON.stringify({'email': current_user.email}),
+                    dataType: "json"
+                }).done(function (data) {
+                    if (!data || !data.results) {
+                        alert('yammerのユーザー情報取得に失敗しました。');
+                    }
+                    user_info = {
+                        'email': data.results.email,
+                        'user_name': data.results.user_name,
+                        'is_soumu': data.results.is_soumu,
+                        'id': data.results.id
+                    };
+                    localStorage.setItem('user_info', JSON.stringify(user_info));
+                    verifyAuth();
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
             }).fail(function (user) {
-                alert("There was an error with the request.");
+                alert(user);
             });
-            /*
-            var token = resp.access_token.token;
-            yam.platform.setAuthToken(token, function (response) {
-                if (response.authResponse) {
-                    $.ajax({
-                        type: "POST",
-                        url: "/auth",
-                        contentType: "application/json",
-                        data: JSON.stringify({'token': token}),
-                        dataType: "json"
-                    }).done(function (data) {
-                        if (!data || !data.results) {
-                            alert('yammerのユーザー情報取得に失敗しました。');
-                        }
-                        user_info = {
-                            'token': data.results.token,
-                            'email': data.results.email,
-                            'user_name': data.results.user_name,
-                            'is_soumu': data.results.is_soumu,
-                            'id': data.results.id
-                        };
-                        localStorage.setItem('user_info', JSON.stringify(user_info));
-                        verifyAuth();
-                    }).fail(function (data) {
-                        alert(data.responseText);
-                    });
-                } else {
-                    alert("Yammer セキュリティトークン設定失敗");
-                }
-            });
-            */
         }
     });
 }
@@ -177,7 +168,8 @@ $(document).on('click', '#btnCancelOrder', function(){
             .removeClass('alert-success');
         $('#btnSubmitOrder').css('display', 'block');
         $('#btnCancelOrder').css('display', 'none');
-        location.href="#";
+        $('#selStore').removeAttr('disabled');
+        $('#selMenu').removeAttr('disabled');
     }).fail(function (data) {
         alert('注文はありません。');
         location.href="#";
@@ -215,6 +207,8 @@ $(document).on('change', '#txtOrderDate', function() {
             .attr('selected', 'selected');
             $('#selMenu option[value="' + data.results[0].menu_id + '"]')
             .attr('selected', 'selected');
+            $('#selStore').attr('disabled', 'disabled');
+            $('#selMenu').attr('disabled', 'disabled');
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
@@ -241,6 +235,16 @@ $(document).on('change', '#txtOrderDate', function() {
                 .attr('selected', 'selected');
             $('#selMenu option:first')
                 .attr('selected', 'selected');
+            $('#selStore').removeAttr('disabled');
+            $('#selMenu').removeAttr('disabled');
+            var latest_order_json = localStorage.getItem('latest_order')
+            if (latest_order_json) {
+                var latest_order = JSON.parse(latest_order_json);
+                $('#selStore option[value="' + latest_order.store_id + '"]')
+                    .attr('selected', 'selected');
+                $('#selMenu option[value="' + latest_order.menu_id + '"]')
+                    .attr('selected', 'selected');
+            }
             if (data.responseJSON.results.is_order_closed) {
                 $('#orderCloseInfo')
                     .css('display', 'block');
@@ -262,7 +266,6 @@ function verifyAuth() {
     var user_info_json = localStorage.getItem('user_info');
     if (user_info_json != null) {
         user_info = JSON.parse(user_info_json);
-        $('#authYammer').css('display', 'none');
         $('#yammerUserInfo')
             .css('display', 'block')
             .text(user_info.user_name
@@ -278,8 +281,13 @@ $(window).on('load', function () {
     $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
         .trigger('change');
     verifyAuth();
-    $('#btnOrder').attr('disabled', user_info == null);
-    $('#btnManage').attr('disabled', user_info == null);
+    if (user_info) {
+        $('#btnOrder').removeAttr('disabled');
+        $('#btnManage').removeAttr('disabled');
+    } else {
+        $('#btnOrder').attr('disabled', 'disabled');
+        $('#btnManage').attr('disabled', 'disabled');
+    }
 
     yammer_login();
 
