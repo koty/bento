@@ -6,7 +6,6 @@ from flask import request
 
 from controllers import user_controller, order_controller, menu_controller
 from controllers.utils import consumes
-from initial_data import InitialData
 from model import User
 
 
@@ -19,6 +18,10 @@ app.register_blueprint(menu_controller.menu_controller)
 @app.route('/static/')
 def root():
     return app.send_static_file('index.html')
+
+@app.route('/static/list/monthly')
+def list_monthly():
+    return app.send_static_file('list_monthly.html')
 
 
 @app.route("/favicon.ico")

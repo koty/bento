@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>注文表</title>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/redmond/jquery-ui.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="bootstrap-select.min.css">
+        <link rel="stylesheet" href="./app.css">
+    </head>
+    <body>
+        <h3>注文表</h3>
+        <table id="monthly-list" border="1">
+            <thead><tr><th>注文日</th><th>無し</th><th>小</th><th>中</th><th>大</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js"></script>
+        <script>
+            $(window).on('load', function() {
+                var order_data = opener.order_data;
+                var rows =order_data.map(function(o) {
+                    return '<tr>'
+                            + '<td>' + o.order_date + '</td>'
+                            + '<td>' + o.user_name + '</td>'
+                            + getMenu(o)
+                            + '<td>' + o.order_date + '</td>'
+                    + '</tr>';
+                });
+                $('#monthly-list tbody').html(rows);
+            })
+            function getMenu(order) {
+                switch(order.menu_id) {
+                    case 1:
+                        return '<td>' + order.unit + '</td><td></td><td></td><td></td>';
+                    case 2:
+                        return '<td></td><td>' + order.unit + '</td><td></td><td></td>';
+                    case 3:
+                        return '</td><td></td><td>' + order.unit + '<td></td><td></td>';
+                    case 4
+                        return '<td></td><td></td><td></td><td>' + order.unit + '</td>';
+                }
+            }
+        </script>
+    </body>
+</html>

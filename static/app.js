@@ -19,12 +19,19 @@ $(document).on('click', '#btnOrder', function () {
     }
     location.href="#order";
 });
+
+$(document).on('click', '#openMonthlyList', function() {
+    window.open('./list_monthly.html')
+});
+
+var order_data;
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
     var store_id = $('#selStore').find(":selected").val();
     $.getJSON('/orders_per_month/' + store_id)
         .done(function (data) {
         if (!data || !data.results) return;
+        order_data = data.results;
         createOrderListPerStore(data.results)
     })
         .fail(function (data) {
