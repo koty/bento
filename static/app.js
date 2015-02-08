@@ -354,8 +354,9 @@ function createOrderListPerStore(orderData) {
             var target = prev.filter(function (value) {
                 return value.menu_id === current.menu_id;
             });
-            target.unit += current.unit;
-            target.price += current.price;
+            if (target.length !== 1) {console.error('ここには来ないはず');return;}
+            target[0].unit += current.unit;
+            target[0].price += current.price;
         }
         return prev;
     }, []);
@@ -401,8 +402,9 @@ function createOrderListPerStore(orderData) {
             var target = prev.filter(function (value) {
                 return value.user_id === current.user_id;
             });
-            target.unit += current.unit;
-            target.price += current.price;
+            if (target.length !== 1) {console.error('ここには来ないはず');return;}
+            target[0].unit += current.unit;
+            target[0].price += current.price;
         }
         return prev;
     }, []);
