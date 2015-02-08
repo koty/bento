@@ -8,6 +8,20 @@
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="bootstrap-select.min.css">
         <link rel="stylesheet" href="./app.css">
+        <style>
+            td {
+                padding-top: 0.5em;
+                padding-bottom:0.5em;
+                padding-left:1em;
+                padding-right:1em;
+            }
+            tr:nth-child(even) {
+                background: #eeeeee;
+            }
+            th {
+                background: lightgray;
+            }
+        </style>
     </head>
     <body>
         <h3>注文表</h3>
@@ -22,27 +36,36 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js"></script>
         <script>
             $(window).on('load', function() {
-                var order_data = opener.order_data;
+                var order_data = opener.order_data.reduce(function (prev, current) {
+                    if (!prev.some(function(value) {return value.order_date === current.order_date;})) {
+                        prev.push(current);
+                    } else {
+                        var target = prev.filter(function (value) {
+                            return value.order_date === current.order_date;
+                        });
+                        target.unit += current.unit;
+                        target.price += current.price;
+                    }
+                    return prev;
+                }, []);
                 var rows =order_data.map(function(o) {
                     return '<tr>'
                             + '<td>' + o.order_date + '</td>'
-                            + '<td>' + o.user_name + '</td>'
+                            //+ '<td>' + o.user_name + '</td>'
                             + getMenu(o)
-                            + '<td>' + o.order_date + '</td>'
-                    + '</tr>';
+                     + '</tr>';
                 });
-                $('#monthly-list tbody').html(rows);
+                $('#monthly-list tbody').html(rows.join('\n'));
             })
             function getMenu(order) {
-                switch(order.menu_id) {
-                    case 1:
-                        return '<td>' + order.unit + '</td><td></td><td></td><td></td>';
-                    case 2:
-                        return '<td></td><td>' + order.unit + '</td><td></td><td></td>';
-                    case 3:
-                        return '</td><td></td><td>' + order.unit + '<td></td><td></td>';
-                    case 4
-                        return '<td></td><td></td><td></td><td>' + order.unit + '</td>';
+                if (order.menu_name.search('無') >=0) {
+                    return '<td>' + order.unit + '</td><td></td><td></td><td></td>';
+                } else if (order.menu_name.search('小') >= 0) {
+                    return '<td></td><td>' + order.unit + '</td><td></td><td></td>';
+                } else if (order.menu_name.search('中') >= 0) {
+                    return '<td></td><td></td><td>' + order.unit + '</td><td></td>';
+                } else if (order.menu_name.search('大') >= 0) {
+                    return '<td></td><td></td><td></td><td>' + order.unit + '</td>';
                 }
             }
         </script>

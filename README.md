@@ -1,3 +1,5 @@
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
 # bento
 諸事情で作ることになった弁当注文取りシステムです。
 
