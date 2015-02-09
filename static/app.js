@@ -313,7 +313,9 @@ $(window).on('load', function () {
     });
     changeDiv();
 });
-
+function clone(o) {
+    return JSON.parse(JSON.stringify(o));
+}
 function createOrderListPerStore(orderData) {
     //列の設定
     var colModelSettings= [
@@ -347,7 +349,7 @@ function createOrderListPerStore(orderData) {
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true              //footerの右下に表示する。
     });
-    var summaryOrderData = orderData.reduce(function (prev, current) {
+    var summaryOrderData = clone(orderData).reduce(function (prev, current) {
         if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
             prev.push(current);
         } else {
@@ -395,7 +397,7 @@ function createOrderListPerStore(orderData) {
         {name:"unit", index: "unit", width: 50, align: "center"},
         {name:"price", index: "unit", width: 50, align: "center"},
     ];
-    var userOrderData = orderData.reduce(function (prev, current) {
+    var userOrderData = clone(orderData).reduce(function (prev, current) {
         if (!prev.some(function(value) {return value.user_id === current.user_id;})) {
             prev.push(current);
         } else {
