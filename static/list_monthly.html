@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>注文表</title>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/redmond/jquery-ui.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="bootstrap-select.min.css">
+        <link rel="stylesheet" href="./app.css">
+        <style>
+            td {
+                padding-top: 0.2em;
+                padding-bottom:0.2em;
+                padding-left:1em;
+                padding-right:1em;
+            }
+            tr:nth-child(even) {
+                background: #eeeeee;
+            }
+            th {
+                background: lightgray;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <h3>注文表</h3>
+        <table id="monthly-list" border="1">
+            <thead><tr><th>注文日</th><th>無し</th><th>少</th><th>中</th><th>多</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js"></script>
+        <script>
+            function map_by_menu(target, source) {
+                var unit = target['unit_' + source.menu_name];
+                var price = target['price_' + source.menu_name];
+                unit = unit ? unit + source.unit : source.unit;
+                price = price ? price + source.price : source.price;
+                target['unit_' + source.menu_name] = unit;
+                target['price_' + source.menu_name] = price;
+                return target;
+            }
+            $(window).on('load', function() {
+                var order_data = opener.order_data.reduce(function (prev, current) {
+                    if (!prev.some(function(value) {return value.order_date === current.order_date;})) {
+                        current = map_by_menu(current, current);
+                        prev.push(current);
+                    } else {
+                        var target = prev.filter(function (value) {
+                            return value.order_date === current.order_date;
+                        });
+                        if (target.length !== 1) {console.error('ここには来ないはず');return;}
+                        target[0] = map_by_menu(target[0], current);
+                    }
+                    return prev;
+                }, []);
+                var rows =order_data.map(function(o) {
+                    return '<tr>'
+                            + '<td>' + o.order_date + '</td>'
+                            //+ '<td>' + o.user_name + '</td>'
+                            + getMenu(o)
+                     + '</tr>';
+                });
+                $('#monthly-list tbody').html(rows.join('\n'));
+            })
+            function getMenu(order) {
+                var unit = order['unit_' + order.menu_name];
+                if (order.menu_name.search('無') >=0) {
+                    return '<td>' + unit  + '</td><td></td><td></td><td></td>';
+                } else if (order.menu_name.search('少') >= 0) {
+                    return '<td></td><td>' + unit + '</td><td></td><td></td>';
+                } else if (order.menu_name.search('中') >= 0) {
+                    return '<td></td><td></td><td>' + unit + '</td><td></td>';
+                } else if (order.menu_name.search('多') >= 0) {
+                    return '<td></td><td></td><td></td><td>' + unit + '</td>';
+                }
+            }
+        </script>
+    </body>
+</html>

@@ -7,6 +7,16 @@ function changeDiv() {
         $('#divHome').css('display', 'none');
         $('#divOrder').css('display', 'none');
         $('#divManage').css('display', 'block');
+        var store_id = $('#selStore').find(":selected").val();
+        $.getJSON('/orders_per_month/' + store_id)
+            .done(function (data) {
+                if (!data || !data.results) return;
+                order_data = data.results;
+                createOrderListPerStore(data.results)
+            })
+            .fail(function (data) {
+                createOrderListPerStore([]);
+            });
     } else {
         $('#divHome').css('display', 'block');
         $('#divOrder').css('display', 'none');
@@ -19,17 +29,14 @@ $(document).on('click', '#btnOrder', function () {
     }
     location.href="#order";
 });
+
+$(document).on('click', '#openMonthlyList', function() {
+    window.open('./list_monthly.html')
+});
+
+var order_data;
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
-    var store_id = $('#selStore').find(":selected").val();
-    $.getJSON('/orders_per_month/' + store_id)
-        .done(function (data) {
-        if (!data || !data.results) return;
-        createOrderListPerStore(data.results)
-    })
-        .fail(function (data) {
-            createOrderListPerStore([]);
-        });
 });
 $(document).on('click', '#btnCloseTodaysOrder', function() {
     var today = moment().format('YYYY-MM-DD');
@@ -347,8 +354,9 @@ function createOrderListPerStore(orderData) {
             var target = prev.filter(function (value) {
                 return value.menu_id === current.menu_id;
             });
-            target.unit += current.unit;
-            target.price += current.price;
+            if (target.length !== 1) {console.error('ここには来ないはず');return;}
+            target[0].unit += current.unit;
+            target[0].price += current.price;
         }
         return prev;
     }, []);
@@ -394,8 +402,9 @@ function createOrderListPerStore(orderData) {
             var target = prev.filter(function (value) {
                 return value.user_id === current.user_id;
             });
-            target.unit += current.unit;
-            target.price += current.price;
+            if (target.length !== 1) {console.error('ここには来ないはず');return;}
+            target[0].unit += current.unit;
+            target[0].price += current.price;
         }
         return prev;
     }, []);
