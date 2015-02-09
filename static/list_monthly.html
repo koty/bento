@@ -45,8 +45,11 @@
                 target['price_' + source.menu_name] = price;
                 return target;
             }
+            function clone(o) {
+                return JSON.parse(JSON.stringify(o));
+            }
             $(window).on('load', function() {
-                var order_data = opener.order_data.reduce(function (prev, current) {
+                var order_data = clone(opener.order_data).reduce(function (prev, current) {
                     if (!prev.some(function(value) {return value.order_date === current.order_date;})) {
                         current = map_by_menu(current, current);
                         prev.push(current);
