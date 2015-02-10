@@ -85,6 +85,8 @@ def _get_orders(orders, is_order_closed=False):
         response.status_code = 404
         return response
 
+    orders = sorted(orders, key=lambda o: o.order_date)
+
     results = {'results': [
         {'id': o.id,
          'order_date': str(o.order_date),
@@ -125,7 +127,7 @@ def get_order_by_date(order_date):
 
 @order_controller.route('/orders_by_user/<user_id>', methods=['GET'])
 def get_order_by_user(user_id):
-    orders_query = Order.select().where(Order.user.id == user_id)
+    orders_query = Order.select().where(Order.user == User(id=user_id))
     return _get_orders(orders_query)
 
 
