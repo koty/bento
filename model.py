@@ -3,12 +3,13 @@ from initial_data import InitialData
 import os
 import urllib.parse
 
-database_url = os.environ["DATABASE_URL"]
-if database_url:
+try:
+    database_url = os.environ["DATABASE_URL"]
     urllib.parse.uses_netloc.append("postgres")
     url = urllib.parse.urlparse(database_url)
     db = PostgresqlDatabase(url.path[1:], user=url.username, password=url.password, host=url.hostname)
-else:
+except KeyError:
+    #db = PostgresqlDatabase('bento')
     db = SqliteDatabase('my.db')
 
 
@@ -69,12 +70,12 @@ if not Store.table_exists():
     Store.create_table()
     InitialData.create_stores()
 
-if not Order.table_exists():
-    Order.create_table()
-    
 if not Menu.table_exists():
     Menu.create_table()
     InitialData.create_menus()
+
+if not Order.table_exists():
+    Order.create_table()
 
 if not Config.table_exists():
     Config.create_table()
