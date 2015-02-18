@@ -5,8 +5,8 @@ import urllib.parse
 
 database_url = os.environ["DATABASE_URL"]
 if database_url:
-    urllib.urlparse.uses_netloc.append("postgres")
-    url = urllib.urlparse(database_url)
+    urllib.parse.uses_netloc.append("postgres")
+    url = urllib.parse.urlparse(database_url)
     
     db = PostgresqlDatabase(url.path[1:], user=url.username)
 else:
