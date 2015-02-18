@@ -5,11 +5,9 @@ import urllib.parse
 
 database_url = os.environ["DATABASE_URL"]
 if database_url:
-    print(database_url)
-    raise Exception("url" + database_url)
     urllib.parse.uses_netloc.append("postgres")
     url = urllib.parse.urlparse(database_url)
-    print(url)
+    raise Exception("url.path=" + url.path)
     db = PostgresqlDatabase(url.path[1:], user=url.username)
 else:
     db = SqliteDatabase('my.db')
