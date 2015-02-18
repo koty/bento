@@ -1,7 +1,16 @@
 from peewee import *
 from initial_data import InitialData
+import os
+import urllib.parse
 
-db = SqliteDatabase('my.db')
+database_url = os.environ["DATABASE_URL"]
+if database_url:
+    urllib.urlparse.uses_netloc.append("postgres")
+    url = urllib.urlparse(database_url)
+    
+    db = PostgresqlDatabase(url.path[1:], user=url.username)
+else:
+    db = SqliteDatabase('my.db')
 
 
 class BaseModel(Model):
