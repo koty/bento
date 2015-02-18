@@ -16,6 +16,7 @@ def get_uers():
                         'user_name': user.user_name,
                         'email': user.email,
                         'id': user.get_id(),
+                        'is_soumu': user.is_soumu,
                         } for user in users]
     response = jsonify({'results': users_result})
     # ステータスコードは OK (200)
