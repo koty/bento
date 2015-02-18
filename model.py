@@ -5,10 +5,14 @@ import urllib.parse
 
 try:
     database_url = os.environ["DATABASE_URL"]
+except KeyError:
+    database_url = None
+
+if not database_url:
     urllib.parse.uses_netloc.append("postgres")
     url = urllib.parse.urlparse(database_url)
     db = PostgresqlDatabase(url.path[1:], user=url.username, password=url.password, host=url.hostname)
-except KeyError:
+else:
     #db = PostgresqlDatabase('bento')
     db = SqliteDatabase('my.db')
 
