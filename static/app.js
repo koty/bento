@@ -3,6 +3,7 @@ function changeDiv() {
         $('#divHome').css('display', 'none');
         $('#divOrder').css('display', 'block');
         $('#divManage').css('display', 'none');
+        $('#lblOrderDateOnOrder').text($('#txtOrderDate').val())
     } else if (location.hash === '#manage') {
         $('#divHome').css('display', 'none');
         $('#divOrder').css('display', 'none');
@@ -21,6 +22,7 @@ function changeDiv() {
         $('#divHome').css('display', 'block');
         $('#divOrder').css('display', 'none');
         $('#divManage').css('display', 'none');
+        refreshMyOrder();
     }
 }
 $(document).on('click', '#btnOrder', function () {
@@ -101,6 +103,7 @@ $(document).on('click', '#btnSubmitOrder', function() {
     }).done(function (data) {
         if (!data || !data.results) {
             alert('注文の保存に失敗しました。');
+            return;
         }
         if (data.status === 200) {
             alert('注文を修正しました。')
@@ -169,6 +172,7 @@ $(document).on('click', '#btnCancelOrder', function(){
     }).done(function (data) {
         if (!data || !data.results) {
             alert('注文の取り消しに失敗しました。');
+            return;
         }
         if (data.status === 200) {
             alert('注文を取り消ししました。')
@@ -313,6 +317,54 @@ $(window).on('load', function () {
     });
     changeDiv();
 });
+function refreshMyOrder() {
+    function createGrid(orderList) {
+//列の設定
+        var colModelSettings = [
+            {name: "order_date", index: "date", width: 100, align: "center"},
+            {name: "menu_id", index: "menu_id", width: 200, align: "center", hidden: true},
+            {name: "menu_name", index: "menu_name", width: 200, align: "center"},
+            {name: "unit", index: "unit", width: 50, align: "center"},
+            {name: "price", index: "unit", width: 50, align: "center"},
+            {name: "store_id", index: "store_id", width: 200, align: "center", hidden: true},
+            {name: "store_name", index: "store_name", width: 200, align: "center"},
+            {name: "proxy_user_id", index: "proxy_user_id", width: 70, align: "center", hidden: true},
+            {name: "proxy_user_name", index: "proxy_user_name", width: 70, align: "center", hidden: true}
+        ];
+        //列の表示名
+        var colNames = ["日付", "注文ID", "注文名", "個数", "金額", "店ID", "店名", "代理社員ID", "代理社員名"];
+        $('#tabMyOrder').jqGrid('GridUnload');
+        var data = orderList.filter(function (x) {
+            return x.order_date >= moment().format('YYYY-MM-DD');
+        });
+        //テーブルの作成
+        $("#tabMyOrder").jqGrid({
+            data: data,  //表示したいデータ
+            datatype: "local",            //データの種別 他にjsonやxmlも選べます。
+            //しかし、私はlocalが推奨です。
+            colNames: colNames,           //列の表示名
+            colModel: colModelSettings,   //列ごとの設定
+            rowNum: 100,                   //一ページに表示する行数
+            rowList: [1, 10, 20],         //変更可能な1ページ当たりの行数
+            caption: "本日以降の注文状況",    //ヘッダーのキャプション
+            height: 'auto',                  //高さ
+            width: 600,                   //幅
+            shrinkToFit: true,        //画面サイズに依存せず固定の大きさを表示する設定
+            viewrecords: true              //footerの右下に表示する。
+        });
+    }
+
+    $.getJSON('/orders_by_user/' + user_info.id)
+        .done(function (data) {
+            if (!data || !data.results || data.results.length === 0) {
+                createGrid([]);
+                return;
+            }
+            createGrid(data.results);
+        }).fail(function(){
+            createGrid([]);
+        });
+}
 function clone(o) {
     return JSON.parse(JSON.stringify(o));
 }
