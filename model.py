@@ -66,21 +66,21 @@ class Order(BaseModel):
     class Meta:
         db_table = 'order'
 
-if not User.table_exists():
+if not User.table_exists() and not User.select().exists():
     User.create_table()
     InitialData.create_users()
 
-if not Store.table_exists():
+if not Store.table_exists() and not Store.select().exists():
     Store.create_table()
     InitialData.create_stores()
 
-if not Menu.table_exists():
+if not Menu.table_exists() and not Menu.select().exists():
     Menu.create_table()
     InitialData.create_menus()
 
-if not Order.table_exists():
+if not Order.table_exists() and not Order.select().exists():
     Order.create_table()
 
-if not Config.table_exists():
+if not Config.table_exists() and not Config.select().exists():
     Config.create_table()
     InitialData.create_config()
