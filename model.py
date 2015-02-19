@@ -67,21 +67,21 @@ class Order(BaseModel):
         db_table = 'order'
 
 if not User.table_exists():
-    if not User.select().exists():
-        User.create_table()
-        InitialData.create_users()
+    User.create_table()
+    InitialData.create_users()
 
-if not Store.table_exists() and not Store.select().exists():
+if not Store.table_exists():
     Store.create_table()
     InitialData.create_stores()
 
-if not Menu.table_exists() and not Menu.select().exists():
+if not Menu.table_exists():
     Menu.create_table()
     InitialData.create_menus()
 
-if not Order.table_exists() and not Order.select().exists():
+if not Order.table_exists():
+    print("+++++++++++create order table+++++++++++++")
     Order.create_table()
 
-if not Config.table_exists() and not Config.select().exists():
+if not Config.table_exists():
     Config.create_table()
     InitialData.create_config()
