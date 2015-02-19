@@ -439,8 +439,9 @@ function createOrderListPerStore(orderData) {
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
-    });
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true
+    }).filterToolbar();
     var summaryOrderData = clone(orderData).reduce(function (prev, current) {
         if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
             prev.push(current);
@@ -479,7 +480,8 @@ function createOrderListPerStore(orderData) {
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true
     });
 
     //列の設定
@@ -503,6 +505,16 @@ function createOrderListPerStore(orderData) {
         return prev;
     }, []);
 
+    var summaryOrderData = userOrderData.reduce(function(prev, current) {
+        if (prev) {
+            prev.unit += current.unit;
+            prev.price += current.price;
+        } else {
+            prev = clone(current);
+            prev.user_name = '合計';
+        }
+        return prev;
+    }, null);
     //テーブルの作成
     $("#tabOrderUserDetail").jqGrid({
         data: userOrderData,  //表示したいデータ
@@ -516,6 +528,8 @@ function createOrderListPerStore(orderData) {
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
-    });
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true,
+        footerrow: true//下部に固定rowを追加
+    }).footerData('set', summaryOrderData);
 }
