@@ -203,11 +203,11 @@ $(document).on('click', '#btnCancelOrder', function(){
 });
 $(document).on('change', '#ddlUsers', function() {
     var selected_user_id = $('#ddlUsers').find(':selected').val();
-    var selected_user = user_list.filter(function(u) { return u.id == selected_user_id});
-    if (!selected_user || selected_user.length === 0) {
+    var selected_users = user_list.filter(function(u) { return u.id == selected_user_id});
+    if (!selected_users || selected_users.length === 0) {
         return;
     }
-    saveUserInfoOnLocalStorage(selected_user);
+    saveUserInfoOnLocalStorage(selected_users[0]);
     verifyAuth();
 });
 $(document).on('change', '#selStore', function() {
