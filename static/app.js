@@ -89,6 +89,7 @@ $(document).on('click', '#btnBackFromOrder', function () {
     location.href = "#";
 });
 $(document).on('click', '#btnSubmitOrder', function() {
+    var user_info = getUserInfoFromLocalStorage();
     var post_data = {};
     post_data.store_id = $('#selStore').find(":selected").val();
     post_data.menu_id = $('#selMenu').find(":selected").val();
@@ -123,6 +124,22 @@ $(document).on('click', '#btnSubmitOrder', function() {
         alert(data.responseText);
     });
 });
+function saveUserInfoOnLocalStorage(results) {
+    user_info = {
+        'email': results.email,
+        'user_name': results.user_name,
+        'is_soumu': results.is_soumu,
+        'id': results.id
+    };
+    localStorage.setItem('user_info', JSON.stringify(user_info));
+}
+function getUserInfoFromLocalStorage() {
+    var user_info_json = localStorage.getItem('user_info');
+    if (user_info_json != null) {
+        return JSON.parse(user_info_json);
+    }
+    return null
+}
 function yammer_login() {
     yam.connect.loginButton('#yammer-login', function (resp) {
         if (resp.authResponse) {
@@ -141,13 +158,7 @@ function yammer_login() {
                     if (!data || !data.results) {
                         alert('yammerのユーザー情報取得に失敗しました。');
                     }
-                    user_info = {
-                        'email': data.results.email,
-                        'user_name': data.results.user_name,
-                        'is_soumu': data.results.is_soumu,
-                        'id': data.results.id
-                    };
-                    localStorage.setItem('user_info', JSON.stringify(user_info));
+                    saveUserInfoOnLocalStorage(data.results);
                     verifyAuth();
                 }).fail(function (data) {
                     alert(data.responseText);
@@ -160,6 +171,7 @@ function yammer_login() {
 }
 
 $(document).on('click', '#btnCancelOrder', function(){
+    var user_info = getUserInfoFromLocalStorage();
     var post_data = {};
     post_data.user_id = user_info.id;
     post_data.order_date = $('#txtOrderDate').val();
@@ -189,7 +201,16 @@ $(document).on('click', '#btnCancelOrder', function(){
         location.href="#";
     });
 });
-$(document).on('change', '#selStore', function(){
+$(document).on('change', '#ddlUsers', function() {
+    var selected_user_id = $('#ddlUsers').find(':selected').val();
+    var selected_users = user_list.filter(function(u) { return u.id == selected_user_id});
+    if (!selected_users || selected_users.length === 0) {
+        return;
+    }
+    saveUserInfoOnLocalStorage(selected_users[0]);
+    verifyAuth();
+});
+$(document).on('change', '#selStore', function() {
     var store_id = $("#selStore").find(':selected').val();
     $.getJSON('/menus/' + store_id).done(function(data) {
         var menu_options = data.results.map(function(s) {
@@ -203,6 +224,7 @@ $(document).on('change', '#txtOrderDate', function() {
     if ($('#txtOrderDate').val() === '') {
         return;
     }
+    var user_info = getUserInfoFromLocalStorage();
     if (!user_info) {
         return;
     }
@@ -276,10 +298,10 @@ $(document).on('change', '#txtOrderDate', function() {
 $(window).hashchange(function() {
     changeDiv();
 });
+
 function verifyAuth() {
-    var user_info_json = localStorage.getItem('user_info');
-    if (user_info_json != null) {
-        user_info = JSON.parse(user_info_json);
+    var user_info = getUserInfoFromLocalStorage()
+    if (user_info != null) {
         $('#yammerUserInfo')
             .css('display', 'block')
             .text(user_info.user_name
@@ -290,11 +312,11 @@ function verifyAuth() {
         }
     }
 }
-var user_info;
+
 $(window).on('load', function () {
     $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
         .trigger('change');
-    verifyAuth();
+    var user_info = getUserInfoFromLocalStorage()
     if (user_info) {
         $('#btnOrder').removeAttr('disabled');
         $('#btnManage').removeAttr('disabled');
@@ -303,7 +325,20 @@ $(window).on('load', function () {
         $('#btnManage').attr('disabled', 'disabled');
     }
 
-    yammer_login();
+    // yammer_login();
+    $.getJSON('/users').done(function(response) {
+        user_list = response.results;
+        var options = response.results.map(function(user){
+            return '<option value="' + user.id + '">' + user.user_name + '</option>';
+        });
+        $('#ddlUsers').html(options)
+        if (user_info) {
+            $('#ddlUsers ')
+            $('#ddlUsers option[value="' + user_info.id + '"]')
+                .attr('selected', 'selected');
+        }
+        verifyAuth();
+    });
 
     var last_selected_store_menu = localStorage.getItem('last_selected_store_menu');
     $.getJSON('/stores').done(function(data) {
@@ -354,17 +389,22 @@ function refreshMyOrder() {
         });
     }
 
-    $.getJSON('/orders_by_user/' + user_info.id)
-        .done(function (data) {
-            if (!data || !data.results || data.results.length === 0) {
+    var user_info = getUserInfoFromLocalStorage();
+    
+    if (user_info) {
+        $.getJSON('/orders_by_user/' + user_info.id)
+            .done(function (data) {
+                if (!data || !data.results || data.results.length === 0) {
+                    createGrid([]);
+                    return;
+                }
+                createGrid(data.results);
+            }).fail(function () {
                 createGrid([]);
-                return;
-            }
-            createGrid(data.results);
-        }).fail(function(){
-            createGrid([]);
-        });
+            });
+    }
 }
+var user_list;
 function clone(o) {
     return JSON.parse(JSON.stringify(o));
 }
@@ -399,8 +439,9 @@ function createOrderListPerStore(orderData) {
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
-    });
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true
+    }).filterToolbar();
     var summaryOrderData = clone(orderData).reduce(function (prev, current) {
         if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
             prev.push(current);
@@ -439,7 +480,8 @@ function createOrderListPerStore(orderData) {
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true
     });
 
     //列の設定
@@ -463,6 +505,16 @@ function createOrderListPerStore(orderData) {
         return prev;
     }, []);
 
+    var summaryOrderData = userOrderData.reduce(function(prev, current) {
+        if (prev) {
+            prev.unit += current.unit;
+            prev.price += current.price;
+        } else {
+            prev = clone(current);
+            prev.user_name = '合計';
+        }
+        return prev;
+    }, null);
     //テーブルの作成
     $("#tabOrderUserDetail").jqGrid({
         data: userOrderData,  //表示したいデータ
@@ -476,6 +528,8 @@ function createOrderListPerStore(orderData) {
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true              //footerの右下に表示する。
-    });
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true,
+        footerrow: true//下部に固定rowを追加
+    }).footerData('set', summaryOrderData);
 }
