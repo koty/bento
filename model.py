@@ -66,9 +66,10 @@ class Order(BaseModel):
     class Meta:
         db_table = 'order'
 
-if not User.table_exists() and not User.select().exists():
-    User.create_table()
-    InitialData.create_users()
+if not User.table_exists():
+    if not User.select().exists():
+        User.create_table()
+        InitialData.create_users()
 
 if not Store.table_exists() and not Store.select().exists():
     Store.create_table()
