@@ -62,6 +62,7 @@ class Order(BaseModel):
     class Meta:
         db_table = 'order'
 
+'''
 if not User.table_exists():
     User.create_table()
     InitialData.create_users()
@@ -81,3 +82,4 @@ if not Order.table_exists():
 if not Config.table_exists():
     Config.create_table()
     InitialData.create_config()
+'''
