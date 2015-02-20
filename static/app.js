@@ -1,13 +1,13 @@
 function changeDiv() {
     if (location.hash === '#order'){
-        $('#divHome').css('display', 'none');
-        $('#divOrder').css('display', 'block');
-        $('#divManage').css('display', 'none');
+        $('#divHome').hide();
+        $('#divOrder').show();
+        $('#divManage').hide();
         $('#lblOrderDateOnOrder').text($('#txtOrderDate').val())
     } else if (location.hash === '#manage') {
-        $('#divHome').css('display', 'none');
-        $('#divOrder').css('display', 'none');
-        $('#divManage').css('display', 'block');
+        $('#divHome').hide();
+        $('#divOrder').hide();
+        $('#divManage').show();
         var store_id = $('#selStore').find(":selected").val();
         $.getJSON('/orders_per_month/' + store_id)
             .done(function (data) {
@@ -19,9 +19,9 @@ function changeDiv() {
                 createOrderListPerStore([]);
             });
     } else {
-        $('#divHome').css('display', 'block');
-        $('#divOrder').css('display', 'none');
-        $('#divManage').css('display', 'none');
+        $('#divHome').show();
+        $('#divOrder').hide();
+        $('#divManage').hide();
         refreshMyOrder();
     }
 }
@@ -33,7 +33,34 @@ $(document).on('click', '#btnOrder', function () {
 });
 
 $(document).on('click', '#openMonthlyList', function() {
-    window.open('./list_monthly.html')
+    //window.open('./list_monthly.html')
+    var btnCloseTodaysOrderToggle = false;
+    if ($('#btnCloseTodaysOrder').css('display') !== 'none') {
+        $('#btnCloseTodaysOrder').hide();
+        btnCloseTodaysOrderToggle = true;
+    }
+    var btnReopenTodaysOrderToggle = false;
+    if ($('#btnReopenTodaysOrder').css('display') !== 'none') {
+        $('#btnReopenTodaysOrder').hide();
+        btnReopenTodaysOrderToggle = true;
+    }
+    $('#btnBackFromManage').hide();
+    $('.page-header').hide();
+    $('#yammerUserInfo').hide();
+    $("#gbox_tabOrderSummary").hide();
+    $('#openMonthlyList').hide();
+    window.print();
+    if (btnCloseTodaysOrderToggle) {
+        $('#btnCloseTodaysOrder').show();
+    }
+    if (btnReopenTodaysOrderToggle) {
+        $('#btnReopenTodaysOrder').show();
+    }
+    $('#btnBackFromManage').show();
+    $('.page-header').show();
+    $('#yammerUserInfo').show();
+    $("#gbox_tabOrderSummary").show();
+    $('#openMonthlyList').show();
 });
 
 var order_data;
@@ -54,9 +81,9 @@ $(document).on('click', '#btnCloseTodaysOrder', function() {
             return;
         }
         alert('注文を締め切りました。');
-        $('#orderCloseInfo').css('display', 'block');
-        $('#btnCloseTodaysOrder').css('display', 'none');
-        $('#btnReopenTodaysOrder').css('display', 'block');
+        $('#orderCloseInfo').show();
+        $('#btnCloseTodaysOrder').hide();
+        $('#btnReopenTodaysOrder').show();
     }).fail(function (data) {
         alert(data.responseText);
     });
@@ -75,9 +102,9 @@ $(document).on('click', '#btnReopenTodaysOrder', function () {
             return;
         }
         alert('注文を再開しました。');
-        $('#orderCloseInfo').css('display', 'none');
-        $('#btnCloseTodaysOrder').css('display', 'block');
-        $('#btnReopenTodaysOrder').css('display', 'none');
+        $('#orderCloseInfo').hide();
+        $('#btnCloseTodaysOrder').show();
+        $('#btnReopenTodaysOrder').hide();
     }).fail(function (data) {
         alert(data.responseText);
     });
@@ -114,8 +141,8 @@ $(document).on('click', '#btnSubmitOrder', function() {
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
-        $('#btnSubmitOrder').css('display', 'none');
-        $('#btnCancelOrder').css('display', 'block');
+        $('#btnSubmitOrder').hide();
+        $('#btnCancelOrder').show();
         $('#selStore').attr('disabled', 'disabled');
         $('#selMenu').attr('disabled', 'disabled');
         localStorage.setItem('latest_order', JSON.stringify(post_data));
@@ -192,8 +219,8 @@ $(document).on('click', '#btnCancelOrder', function(){
         $('#lblOrderStatus').text('注文未済みです。')
             .addClass('alert-warning')
             .removeClass('alert-success');
-        $('#btnSubmitOrder').css('display', 'block');
-        $('#btnCancelOrder').css('display', 'none');
+        $('#btnSubmitOrder').show();
+        $('#btnCancelOrder').hide();
         $('#selStore').removeAttr('disabled');
         $('#selMenu').removeAttr('disabled');
     }).fail(function (data) {
@@ -248,16 +275,16 @@ $(document).on('change', '#txtOrderDate', function() {
         $('#lblOrderStatus').text('注文済みです。')
             .addClass('alert-success')
             .removeClass('alert-warning');
-            $('#btnSubmitOrder').css('display', 'none');
-            $('#btnCancelOrder').css('display', 'block');
+            $('#btnSubmitOrder').hide();
+            $('#btnCancelOrder').show();
             if (data.results.is_order_closed) {
-                $('#orderCloseInfo').css('display', 'block');
-                $('#btnCloseTodaysOrder').css('display', 'none');
-                $('#btnReopenTodaysOrder').css('display', 'block');
+                $('#orderCloseInfo').show();
+                $('#btnCloseTodaysOrder').hide();
+                $('#btnReopenTodaysOrder').show();
             } else {
-                $('#orderCloseInfo').css('display', 'none');
-                $('#btnCloseTodaysOrder').css('display', 'block');
-                $('#btnReopenTodaysOrder').css('display', 'none');
+                $('#orderCloseInfo').hide();
+                $('#btnCloseTodaysOrder').show();
+                $('#btnReopenTodaysOrder').hide();
             }
 
     }).fail(function(data) {
@@ -265,8 +292,8 @@ $(document).on('change', '#txtOrderDate', function() {
             $('#lblOrderStatus').text('注文未済みです。')
                 .addClass('alert-warning')
                 .removeClass('alert-success');
-            $('#btnSubmitOrder').css('display', 'block');
-            $('#btnCancelOrder').css('display', 'none');
+            $('#btnSubmitOrder').show();
+            $('#btnCancelOrder').hide();
             $('#selStore option:first')
                 .attr('selected', 'selected');
             $('#selMenu option:first')
@@ -283,14 +310,14 @@ $(document).on('change', '#txtOrderDate', function() {
             }
             if (data.responseJSON.results.is_order_closed) {
                 $('#orderCloseInfo')
-                    .css('display', 'block');
-                $('#btnCloseTodaysOrder').css('display', 'none');
-                $('#btnReopenTodaysOrder').css('display', 'block');
+                    .show();
+                $('#btnCloseTodaysOrder').hide();
+                $('#btnReopenTodaysOrder').show();
             } else {
                 $('#orderCloseInfo')
-                    .css('display', 'none');
-                $('#btnCloseTodaysOrder').css('display', 'block');
-                $('#btnReopenTodaysOrder').css('display', 'none');
+                    .hide();
+                $('#btnCloseTodaysOrder').show();
+                $('#btnReopenTodaysOrder').hide();
             }
         }
     });
@@ -308,7 +335,7 @@ function verifyAuth() {
             + ' <' + user_info.email + '> '
             + 'としてログイン中');
         if (user_info.is_soumu) {
-            $('#btnManage').css('display', 'block');
+            $('#btnManage').show();
         }
     }
 }
