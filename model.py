@@ -5,11 +5,16 @@ import urllib.parse
 
 try:
     database_url = os.environ["DATABASE_URL"]
+except KeyError:
+    database_url = None
+
+if database_url:
+    print('use postgres')
     urllib.parse.uses_netloc.append("postgres")
     url = urllib.parse.urlparse(database_url)
     db = PostgresqlDatabase(url.path[1:], user=url.username, password=url.password, host=url.hostname)
-except KeyError:
-    #db = PostgresqlDatabase('bento')
+else:
+    print('use sqlite')
     db = SqliteDatabase('my.db')
 
 
@@ -62,7 +67,7 @@ class Order(BaseModel):
     class Meta:
         db_table = 'order'
 
-'''
+
 if not User.table_exists():
     User.create_table()
     InitialData.create_users()
@@ -76,10 +81,8 @@ if not Menu.table_exists():
     InitialData.create_menus()
 
 if not Order.table_exists():
-    print("+++++++++++create order table+++++++++++++")
     Order.create_table()
 
 if not Config.table_exists():
     Config.create_table()
     InitialData.create_config()
-'''
