@@ -49,6 +49,7 @@ $(document).on('click', '#openMonthlyList', function() {
     $('#yammerUserInfo').hide();
     $("#gbox_tabOrderSummary").hide();
     $('#openMonthlyList').hide();
+    $("#tabOrderDetail")[0].toggleToolbar()
     window.print();
     if (btnCloseTodaysOrderToggle) {
         $('#btnCloseTodaysOrder').show();
@@ -61,6 +62,7 @@ $(document).on('click', '#openMonthlyList', function() {
     $('#yammerUserInfo').show();
     $("#gbox_tabOrderSummary").show();
     $('#openMonthlyList').show();
+    $("#tabOrderDetail")[0].toggleToolbar()
 });
 
 var order_data;
