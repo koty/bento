@@ -111,10 +111,18 @@ def _get_orders(orders, is_order_closed=False):
 def get_order_per_month(store_id):
     store = Store.get(Store.id == store_id)
     today = datetime.today()
-    # 前月支払日翌日〜今月支払日
-    last_payment_day = (add_months(today.replace(day=store.payment_day), -1) + timedelta(days=1)) \
-                       .strftime('%Y-%m-%d')
-    this_payment_day = today.replace(day=store.payment_day).date().strftime('%Y-%m-%d')
+    
+    last_payment_day = today.replace(day=store.payment_day)
+    if today.day <= store.payment_day:
+        # 前月支払日翌日〜今月支払日
+        last_payment_day = add_months(last_payment_day, -1)
+    last_payment_day = (last_payment_day + timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    this_payment_day = today.replace(day=store.payment_day)
+    if today.day > store.payment_day:
+        this_payment_day = add_months(this_payment_day, 1)
+    this_payment_day = this_payment_day.strftime('%Y-%m-%d')
+        
     orders_query = Order.select().where(last_payment_day <= Order.order_date, Order.order_date <= this_payment_day)
     return _get_orders(orders_query)
 
