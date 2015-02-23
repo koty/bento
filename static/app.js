@@ -534,7 +534,7 @@ function createOrderListPerStore(orderData) {
         return prev;
     }, []);
 
-    var summaryOrderData = userOrderData.reduce(function(prev, current) {
+    var summaryOrderData = clone(userOrderData).reduce(function(prev, current) {
         if (prev) {
             prev.unit += current.unit;
             prev.price += current.price;
