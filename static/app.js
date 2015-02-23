@@ -471,7 +471,9 @@ function createOrderListPerStore(orderData) {
         viewrecords: true,              //footerの右下に表示する。
         altRows: true
     }).filterToolbar();
-    var summaryOrderData = clone(orderData).reduce(function (prev, current) {
+    var todaysOrderData = clone(orderData).filter(function (x) {
+                                                      return x.order_date === moment().format('YYYY-MM-DD');})
+                                          .reduce(function (prev, current) {
         if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
             prev.push(current);
         } else {
@@ -498,7 +500,7 @@ function createOrderListPerStore(orderData) {
     //列の表示名
     var colSummaryNames = ["日付", "注文ID", "注文名", "個数", "金額", "店ID", "店名"];
     $("#tabOrderSummary").jqGrid({
-        data: summaryOrderData,  //表示したいデータ
+        data: todaysOrderData,  //表示したいデータ
         datatype : "local",            //データの種別 他にjsonやxmlも選べます。
         //しかし、私はlocalが推奨です。
         colNames : colSummaryNames,           //列の表示名
