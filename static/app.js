@@ -358,6 +358,7 @@ $(window).on('load', function () {
             return '<option value="' + user.id + '">' + user.user_name + '</option>';
         });
         $('#ddlUsers').html(options)
+        var user_info = getUserInfoFromLocalStorage();
         if (user_info) {
             $('#ddlUsers ')
             $('#ddlUsers option[value="' + user_info.id + '"]')
