@@ -236,6 +236,7 @@ $(document).on('change', '#ddlUsers', function() {
     if (!selected_users || selected_users.length === 0) {
         return;
     }
+    $('#txtOrderDate').trigger('change');
     saveUserInfoOnLocalStorage(selected_users[0]);
     verifyAuth();
 });
@@ -339,21 +340,17 @@ function verifyAuth() {
         if (user_info.is_soumu) {
             $('#btnManage').show();
         }
-    }
-}
-
-$(window).on('load', function () {
-    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
-        .trigger('change');
-    var user_info = getUserInfoFromLocalStorage()
-    if (user_info) {
         $('#btnOrder').removeAttr('disabled');
         $('#btnManage').removeAttr('disabled');
     } else {
         $('#btnOrder').attr('disabled', 'disabled');
         $('#btnManage').attr('disabled', 'disabled');
     }
+}
 
+$(window).on('load', function () {
+    $('#txtOrderDate').val(moment().format('YYYY-MM-DD'))
+        .trigger('change');
     // yammer_login();
     $.getJSON('/users').done(function(response) {
         user_list = response.results;
