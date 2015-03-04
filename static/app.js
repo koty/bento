@@ -83,6 +83,7 @@ $(document).on('click', '#openDailyList', function() {
     $('#openMonthlyList').hide();
     $("#gbox_tabOrderDetail").hide()
     $("#gbox_tabOrderUserDetail").hide()
+    $('#divFaxExpressions').show();
     window.print();
     if (btnCloseTodaysOrderToggle) {
         $('#btnCloseTodaysOrder').show();
@@ -97,6 +98,7 @@ $(document).on('click', '#openDailyList', function() {
     $('#openMonthlyList').show();
     $("#gbox_tabOrderDetail").show()
     $("#gbox_tabOrderUserDetail").show()
+    $('#divFaxExpressions').hide();
 });
 
 var order_data;
@@ -414,6 +416,11 @@ $(window).on('load', function () {
         $('#selStore').trigger('change');
     });
     changeDiv();
+    moment.lang('ja', {
+        weekdays: ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"],
+        weekdaysShort: ["日","月","火","水","木","金","土"],
+    });
+    $('#faxToday').text(moment().format('M月 D日 dddd'));
 });
 function refreshMyOrder() {
     function createGrid(orderList) {
