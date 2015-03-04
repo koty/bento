@@ -65,6 +65,40 @@ $(document).on('click', '#openMonthlyList', function() {
     $("#tabOrderDetail")[0].toggleToolbar()
 });
 
+$(document).on('click', '#openDailyList', function() {
+    var btnCloseTodaysOrderToggle = false;
+    if ($('#btnCloseTodaysOrder').css('display') !== 'none') {
+        $('#btnCloseTodaysOrder').hide();
+        btnCloseTodaysOrderToggle = true;
+    }
+    var btnReopenTodaysOrderToggle = false;
+    if ($('#btnReopenTodaysOrder').css('display') !== 'none') {
+        $('#btnReopenTodaysOrder').hide();
+        btnReopenTodaysOrderToggle = true;
+    }
+    $('#openDailyList').hide();
+    $('#btnBackFromManage').hide();
+    $('.page-header').hide();
+    $('#yammerUserInfo').hide();
+    $('#openMonthlyList').hide();
+    $("#gbox_tabOrderDetail").hide()
+    $("#gbox_tabOrderUserDetail").hide()
+    window.print();
+    if (btnCloseTodaysOrderToggle) {
+        $('#btnCloseTodaysOrder').show();
+    }
+    if (btnReopenTodaysOrderToggle) {
+        $('#btnReopenTodaysOrder').show();
+    }
+    $('#openDailyList').show();
+    $('#btnBackFromManage').show();
+    $('.page-header').show();
+    $('#yammerUserInfo').show();
+    $('#openMonthlyList').show();
+    $("#gbox_tabOrderDetail").show()
+    $("#gbox_tabOrderUserDetail").show()
+});
+
 var order_data;
 $(document).on('click', '#btnManage', function() {
     location.href="#manage";
@@ -448,7 +482,7 @@ function createOrderListPerStore(orderData) {
         {name:"unit", index: "unit", width: 50, align: "center"},
         {name:"price", index: "unit", width: 50, align: "center"},
         {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
-        {name:"store_name",index:"store_name",width:200,align:"center"},
+        {name:"store_name",index:"store_name",width:200,align:"center", hidden:true},
         {name:"proxy_user_id",index:"proxy_user_id",width:70,align:"center", hidden:true},
         {name:"proxy_user_name",index:"proxy_user_name",width:70,align:"center", hidden:true}
     ];
@@ -495,7 +529,7 @@ function createOrderListPerStore(orderData) {
         {name:"unit", index: "unit", width: 50, align: "center"},
         {name:"price", index: "unit_price", width: 50, align: "center"},
         {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
-        {name:"store_name",index:"store_name",width:200,align:"center"},
+        {name:"store_name",index:"store_name",width:200,align:"center", hidden:true},
     ];
     //列の表示名
     var colSummaryNames = ["日付", "注文ID", "注文名", "個数", "金額", "店ID", "店名"];
