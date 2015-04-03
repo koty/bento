@@ -367,7 +367,7 @@ $(document).on('change', '#txtOrderDate', function() {
                 $('#selMenu option[value="' + latest_order.menu_id + '"]')
                     .attr('selected', 'selected');
             }
-            if (data.responseJSON.is_order_closed) {
+            if (data.responseJSON.results.is_order_closed) {
                 $('#orderCloseInfo').show();
                 $('#btnCloseTodaysOrder').hide();
                 $('#btnReopenTodaysOrder').show();
