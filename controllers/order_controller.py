@@ -107,11 +107,12 @@ def _get_orders(orders, is_order_closed=False):
     return response
 
 
-@order_controller.route('/orders_per_month/<store_id>', methods=['GET'])
-def get_order_per_month(store_id):
+@order_controller.route('/orders_per_month/<int:month>/<int:store_id>', methods=['GET'])
+def get_order_per_month(month, store_id):
     store = Store.get(Store.id == store_id)
     today = datetime.today()
-    
+    today = today.replace(month=month, day=1)
+
     last_payment_day = today.replace(day=store.payment_day)
     if today.day <= store.payment_day:
         # 前月支払日翌日〜今月支払日

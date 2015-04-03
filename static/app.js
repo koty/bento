@@ -9,15 +9,26 @@ function changeDiv() {
         $('#divOrder').hide();
         $('#divManage').show();
         var store_id = $('#selStore').find(":selected").val();
-        $.getJSON('/orders_per_month/' + store_id)
+        var month = $('#sel_manage_month').val();
+        $.getJSON('/orders_per_month/' + month + '/' + store_id)
             .done(function (data) {
                 if (!data || !data.results) return;
                 order_data = data.results;
-                createOrderListPerStore(data.results)
+                createOrderListPerStore(clone(data.results))
             })
             .fail(function (data) {
                 createOrderListPerStore([]);
             });
+        var this_month = moment().month() + 1;
+        $.getJSON('/orders_per_month/' + this_month + '/' + store_id)
+            .done(function (data) {
+                if (!data || !data.results) return;
+                order_data = data.results;
+                createTodaysOrderListPerStore(clone(data.results))
+            })
+            .fail(function (data) {
+                createTodaysOrderListPerStore([])
+             });
     } else {
         $('#divHome').show();
         $('#divOrder').hide();
@@ -44,11 +55,13 @@ $(document).on('click', '#openMonthlyList', function() {
         $('#btnReopenTodaysOrder').hide();
         btnReopenTodaysOrderToggle = true;
     }
+    $('#orderCloseInfo').hide()
     $('#btnBackFromManage').hide();
     $('.page-header').hide();
     $('#yammerUserInfo').hide();
     $("#gbox_tabOrderSummary").hide();
     $('#openMonthlyList').hide();
+    $('#openDailyList').hide();
     $("#tabOrderDetail")[0].toggleToolbar()
     window.print();
     if (btnCloseTodaysOrderToggle) {
@@ -56,12 +69,14 @@ $(document).on('click', '#openMonthlyList', function() {
     }
     if (btnReopenTodaysOrderToggle) {
         $('#btnReopenTodaysOrder').show();
+        $('#orderCloseInfo').show()
     }
     $('#btnBackFromManage').show();
     $('.page-header').show();
     $('#yammerUserInfo').show();
     $("#gbox_tabOrderSummary").show();
     $('#openMonthlyList').show();
+    $('#openDailyList').show();
     $("#tabOrderDetail")[0].toggleToolbar()
 });
 
@@ -76,6 +91,7 @@ $(document).on('click', '#openDailyList', function() {
         $('#btnReopenTodaysOrder').hide();
         btnReopenTodaysOrderToggle = true;
     }
+    $('#orderCloseInfo').hide()
     $('#openDailyList').hide();
     $('#btnBackFromManage').hide();
     $('.page-header').hide();
@@ -83,6 +99,7 @@ $(document).on('click', '#openDailyList', function() {
     $('#openMonthlyList').hide();
     $("#gbox_tabOrderDetail").hide()
     $("#gbox_tabOrderUserDetail").hide()
+    $('#sel_manage_month').hide();
     $('#divFaxExpressions').show();
     window.print();
     if (btnCloseTodaysOrderToggle) {
@@ -90,6 +107,7 @@ $(document).on('click', '#openDailyList', function() {
     }
     if (btnReopenTodaysOrderToggle) {
         $('#btnReopenTodaysOrder').show();
+        $('#orderCloseInfo').show();
     }
     $('#openDailyList').show();
     $('#btnBackFromManage').show();
@@ -98,6 +116,7 @@ $(document).on('click', '#openDailyList', function() {
     $('#openMonthlyList').show();
     $("#gbox_tabOrderDetail").show()
     $("#gbox_tabOrderUserDetail").show()
+    $('#sel_manage_month').show();
     $('#divFaxExpressions').hide();
 });
 
@@ -420,7 +439,17 @@ $(window).on('load', function () {
         weekdays: ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"],
         weekdaysShort: ["日","月","火","水","木","金","土"]
     });
-    $('#faxToday').text(moment().format('M月 D日 dddd'));
+    var moment_now = moment();
+    $('#faxToday').text(moment_now.format('M月 D日 dddd'));
+    var this_month = moment_now.month() + 1; //0オリジンなので。
+    var previous_month = moment_now.month();
+    var opts = "";
+    opts += "<option value='" + previous_month + "'>" + previous_month + "月</option>";
+    opts += "<option value='" + this_month + "'>" + this_month + "月</option>";
+    $('#sel_manage_month').html(opts)
+        .on('change', function() {
+            changeDiv()
+        });
 });
 function refreshMyOrder() {
     function createGrid(orderList) {
@@ -478,6 +507,53 @@ var user_list;
 function clone(o) {
     return JSON.parse(JSON.stringify(o));
 }
+function createTodaysOrderListPerStore(orderData) {
+    var todaysOrderData = clone(orderData).filter(function (x) {
+        return x.order_date === moment().format('YYYY-MM-DD');})
+        .reduce(function (prev, current) {
+            if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
+                prev.push(current);
+            } else {
+                var target = prev.filter(function (value) {
+                    return value.menu_id === current.menu_id;
+                });
+                if (target.length !== 1) {console.error('ここには来ないはず');return;}
+                target[0].unit += current.unit;
+                target[0].price += current.price;
+            }
+            return prev;
+        }, []);
+
+    //列の設定
+    var colSummaryModelSettings= [
+        {name:"order_date",index:"date",width:100,align:"center"},
+        {name:"menu_id",index:"menu_id",width:200,align:"center", hidden:true},
+        {name:"menu_name",index:"menu_name",width:200,align:"center"},
+        {name:"unit", index: "unit", width: 50, align: "center"},
+        {name:"price", index: "unit_price", width: 50, align: "center"},
+        {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
+        {name:"store_name",index:"store_name",width:200,align:"center", hidden:true},
+    ];
+    //列の表示名
+    var colSummaryNames = ["日付", "注文ID", "注文名", "個数", "金額", "店ID", "店名"];
+    $("#tabOrderSummary").jqGrid('GridUnload');
+    $("#tabOrderSummary").jqGrid({
+        data: todaysOrderData,  //表示したいデータ
+        datatype : "local",            //データの種別 他にjsonやxmlも選べます。
+        //しかし、私はlocalが推奨です。
+        colNames : colSummaryNames,           //列の表示名
+        colModel : colSummaryModelSettings,   //列ごとの設定
+        rowNum : 100,                   //一ページに表示する行数
+        rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
+        caption : "本日注文状況",    //ヘッダーのキャプション
+        height : 'auto',                  //高さ
+        width : 600,                   //幅
+        shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
+        viewrecords: true,              //footerの右下に表示する。
+        altRows: true
+    });
+}
+
 function createOrderListPerStore(orderData) {
     //列の設定
     var colModelSettings= [
@@ -495,66 +571,23 @@ function createOrderListPerStore(orderData) {
     ];
     //列の表示名
     var colNames = ["日付", "社員ID", "社員名", "注文ID", "注文名", "個数", "金額", "店ID", "店名", "代理社員ID", "代理社員名"];
-
     //テーブルの作成
+    $("#tabOrderDetail").jqGrid('GridUnload');
     $("#tabOrderDetail").jqGrid({
-        data: orderData,  //表示したいデータ
+        data: clone(orderData),  //表示したいデータ
         datatype : "local",            //データの種別 他にjsonやxmlも選べます。
         //しかし、私はlocalが推奨です。
         colNames : colNames,           //列の表示名
         colModel : colModelSettings,   //列ごとの設定
         rowNum : 100,                   //一ページに表示する行数
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
-        caption : "当月注文状況詳細",    //ヘッダーのキャプション
+        caption : "月別注文状況詳細",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
         viewrecords: true,              //footerの右下に表示する。
         altRows: true
     }).filterToolbar();
-    var todaysOrderData = clone(orderData).filter(function (x) {
-                                                      return x.order_date === moment().format('YYYY-MM-DD');})
-                                          .reduce(function (prev, current) {
-        if (!prev.some(function(value) {return value.menu_id === current.menu_id;})) {
-            prev.push(current);
-        } else {
-            var target = prev.filter(function (value) {
-                return value.menu_id === current.menu_id;
-            });
-            if (target.length !== 1) {console.error('ここには来ないはず');return;}
-            target[0].unit += current.unit;
-            target[0].price += current.price;
-        }
-        return prev;
-    }, []);
-
-    //列の設定
-    var colSummaryModelSettings= [
-        {name:"order_date",index:"date",width:100,align:"center"},
-        {name:"menu_id",index:"menu_id",width:200,align:"center", hidden:true},
-        {name:"menu_name",index:"menu_name",width:200,align:"center"},
-        {name:"unit", index: "unit", width: 50, align: "center"},
-        {name:"price", index: "unit_price", width: 50, align: "center"},
-        {name:"store_id",index:"store_id",width:200,align:"center", hidden:true},
-        {name:"store_name",index:"store_name",width:200,align:"center", hidden:true},
-    ];
-    //列の表示名
-    var colSummaryNames = ["日付", "注文ID", "注文名", "個数", "金額", "店ID", "店名"];
-    $("#tabOrderSummary").jqGrid({
-        data: todaysOrderData,  //表示したいデータ
-        datatype : "local",            //データの種別 他にjsonやxmlも選べます。
-        //しかし、私はlocalが推奨です。
-        colNames : colSummaryNames,           //列の表示名
-        colModel : colSummaryModelSettings,   //列ごとの設定
-        rowNum : 100,                   //一ページに表示する行数
-        rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
-        caption : "本日注文状況",    //ヘッダーのキャプション
-        height : 'auto',                  //高さ
-        width : 600,                   //幅
-        shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
-        viewrecords: true,              //footerの右下に表示する。
-        altRows: true
-    });
 
     //列の設定
     var colUserModelSettings= [
@@ -588,6 +621,7 @@ function createOrderListPerStore(orderData) {
         return prev;
     }, null);
     //テーブルの作成
+    $("#tabOrderUserDetail").jqGrid('GridUnload');
     $("#tabOrderUserDetail").jqGrid({
         data: userOrderData,  //表示したいデータ
         datatype : "local",            //データの種別 他にjsonやxmlも選べます。
@@ -596,7 +630,7 @@ function createOrderListPerStore(orderData) {
         colModel : colUserModelSettings,   //列ごとの設定
         rowNum : 100,                   //一ページに表示する行数
         rowList : [1, 10, 20],         //変更可能な1ページ当たりの行数
-        caption : "当月個人別注文状況詳細",    //ヘッダーのキャプション
+        caption : "月別個人別注文状況詳細",    //ヘッダーのキャプション
         height : 'auto',                  //高さ
         width : 600,                   //幅
         shrinkToFit : true,        //画面サイズに依存せず固定の大きさを表示する設定
