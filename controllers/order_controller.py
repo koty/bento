@@ -18,7 +18,7 @@ def post_order():
     content_body_dict = json.loads(request.data.decode())
 
     order = Order.select(Order.user == User(id=content_body_dict['user_id'])
-                         and Order.order_date == content_body_dict['order_date'])
+                         , Order.order_date == content_body_dict['order_date'])
     # order[0].get_id()は不要そうな気がするけど、order.exists()がtrueになるので。。。
     if order.exists() and order[0].get_id():
         results = {'results': {'user': {
@@ -61,11 +61,11 @@ def delete_order():
     content_body_dict = json.loads(request.data.decode())
 
     order = Order.select(Order.user == User(id=content_body_dict['user_id'])
-                         and Order.order_date == content_body_dict['order_date'])
+                         , Order.order_date == content_body_dict['order_date'])
     if order.exists():
         q = Order.delete() \
             .where(Order.user == User(id=content_body_dict['user_id'])
-                   and Order.order_date == content_body_dict['order_date'])
+                   , Order.order_date == content_body_dict['order_date'])
         q.execute()
         results = {'results': True}
         response = jsonify({'results': results})
