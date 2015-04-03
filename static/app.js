@@ -37,8 +37,9 @@ function changeDiv() {
     }
 }
 $(document).on('click', '#btnOrder', function () {
-    if ($('#txtOrderDate').val() === '') {
+    if ($('#txtOrderDate').val().trim() === '') {
         alert('注文日を入力してください。');
+        return;
     }
     location.href="#order";
 });
