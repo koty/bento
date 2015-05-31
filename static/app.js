@@ -221,16 +221,26 @@ $(document).on('change', '#selStore', function() {
     });
 });
 $(document).on('change', '#txtOrderDate', function() {
-    if ($('#txtOrderDate').val() === '') {
+    var ymd = $(this).val()
+    var ymds = ymd.split('-');
+    if (ymds.length = 1) {
+        ymds = ymd.split('/');
+    }
+    var year = ymds[0];
+    var month = ymds[1];
+    var day = ymds[2];
+    var todayLunchUrl = 'http://www.obento.co.jp/menu/' + year + month + '/' + day + '.html';
+    $('#frmTodayLunch').attr('src', todayLunchUrl)
+    if (ymd === '') {
         return;
     }
     var user_info = getUserInfoFromLocalStorage();
     if (!user_info) {
         return;
     }
-    $.getJSON('/order_by_user_date/' 
+    $.getJSON('/order_by_user_date/'
         + user_info.id + '/' 
-        + $('#txtOrderDate').val())
+        + ymd)
     .done(function(data) {
             if (!data || !data.results || data.results.length === 0) {
             $('#selStore option:first')
@@ -351,6 +361,7 @@ $(window).on('load', function () {
         $('#selStore').trigger('change');
     });
     changeDiv();
+    $('#txtOrderDate').datepicker();
 });
 function refreshMyOrder() {
     function createGrid(orderList) {
