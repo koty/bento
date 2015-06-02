@@ -309,7 +309,7 @@ $(document).on('change', '#selStore', function() {
 $(document).on('change', '#txtOrderDate', function() {
     var ymd = $(this).val()
     var ymds = ymd.split('-');
-    if (ymds.length = 1) {
+    if (ymds.length === 1) {
         ymds = ymd.split('/');
     }
     var year = ymds[0];
