@@ -59,3 +59,6 @@ workspace.xml
 
 
 initial_data.py
+
+node_modules/
+.DS_store
